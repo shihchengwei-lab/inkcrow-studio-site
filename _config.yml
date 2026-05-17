@@ -1,0 +1,27 @@
+title: 墨鴉工作室
+description: 獨立工作室作品『願行』官方資訊
+url: https://inkcrow-studio.com
+lang: zh-Hant
+
+theme: minima
+
+minima:
+  skin: classic
+  date_format: "%Y-%m-%d"
+
+# Pages shown in header nav
+header_pages:
+  - privacy.md
+  - terms.md
+
+markdown: kramdown
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+
+# Exclude dev files from build
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - .gitignore
