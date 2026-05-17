@@ -1,0 +1,251 @@
+---
+# Front matter required so Jekyll processes this as SCSS
+---
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700&display=swap');
+
+// Color palette
+$ink: #2A2622;
+$ink-deep: #1A1614;
+$beige: #EBDCC4;
+$beige-soft: #F2E6D2;
+$cinnabar: #9B3838;
+$cinnabar-soft: rgba(155, 56, 56, 0.2);
+$muted: #6B5F50;
+$muted-soft: #C9BCA4;
+
+// Minima variable overrides (must come before @import "minima")
+$brand-color: $cinnabar;
+$text-color: $ink;
+$background-color: $beige;
+$grey-color: $muted;
+$grey-color-light: $muted-soft;
+$grey-color-dark: $ink;
+$base-font-family: "Noto Serif TC", "Source Han Serif TC", "PingFang TC", "Microsoft JhengHei", serif;
+$base-font-size: 17px;
+$base-line-height: 1.85;
+$content-width: 760px;
+
+@import "minima";
+
+// ---------- Global overrides ----------
+
+body {
+  background-color: $beige;
+  color: $ink;
+  font-family: $base-font-family;
+  letter-spacing: 0.02em;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: $cinnabar;
+  text-decoration: none;
+  border-bottom: 1px solid $cinnabar-soft;
+  transition: border-color 0.2s;
+  &:hover {
+    color: darken($cinnabar, 8%);
+    border-bottom-color: $cinnabar;
+    text-decoration: none;
+  }
+}
+
+// ---------- Site header ----------
+
+.site-header {
+  background-color: rgba(235, 220, 196, 0.85);
+  border-bottom: 1px solid $cinnabar-soft;
+  border-top: none;
+  min-height: 60px;
+  backdrop-filter: blur(6px);
+}
+
+.site-title {
+  color: $ink !important;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  font-size: 22px;
+  border-bottom: none;
+  &:hover {
+    border-bottom: none;
+  }
+}
+
+.site-nav .page-link {
+  color: $ink;
+  letter-spacing: 0.05em;
+  border-bottom: none;
+  &:hover {
+    color: $cinnabar;
+    border-bottom: none;
+  }
+}
+
+// ---------- Hero (homepage only) ----------
+
+.hero {
+  text-align: center;
+  padding: 80px 20px 60px;
+  border-bottom: 1px solid $cinnabar-soft;
+  margin-bottom: 40px;
+}
+
+.hero-logo {
+  display: block;
+  margin: 0 auto 24px;
+  width: 240px;
+  height: auto;
+  // mix-blend-mode multiply: 白色 × 米色 = 米色（視覺消失）、黑色 × 米色 = 黑色
+  mix-blend-mode: multiply;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.04));
+}
+
+.hero-title {
+  font-family: "Noto Serif TC", serif;
+  font-weight: 500;
+  font-size: 36px;
+  color: $ink-deep;
+  letter-spacing: 0.1em;
+  margin: 0 0 0.2em;
+  line-height: 1.2;
+}
+
+.hero-en {
+  font-family: "Georgia", serif;
+  font-style: italic;
+  font-size: 16px;
+  color: $muted;
+  letter-spacing: 0.2em;
+  margin-bottom: 1.5em;
+  text-transform: uppercase;
+}
+
+.hero-tagline {
+  font-size: 17px;
+  color: $muted;
+  max-width: 480px;
+  margin: 0 auto;
+  line-height: 1.8;
+}
+
+// ---------- Content typography ----------
+
+.page-content {
+  padding: 30px 0 60px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: $base-font-family;
+  font-weight: 500;
+  color: $ink-deep;
+  letter-spacing: 0.05em;
+  margin-top: 1.8em;
+  margin-bottom: 0.6em;
+}
+
+h1 { font-size: 32px; }
+h2 {
+  font-size: 24px;
+  border-bottom: 1px solid $cinnabar-soft;
+  padding-bottom: 0.3em;
+}
+h3 { font-size: 19px; }
+
+.page-content p,
+.page-content li {
+  color: $ink;
+}
+
+strong {
+  color: $ink-deep;
+  font-weight: 700;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid $cinnabar-soft;
+  margin: 50px 0;
+}
+
+blockquote {
+  border-left: 3px solid $cinnabar;
+  color: $muted;
+  font-style: normal;
+  padding-left: 1.2em;
+  margin-left: 0;
+  letter-spacing: 0.03em;
+  font-size: 0.95em;
+}
+
+code {
+  background-color: rgba(155, 56, 56, 0.08);
+  color: $ink-deep;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.88em;
+  font-family: "SFMono-Regular", "Consolas", "Liberation Mono", monospace;
+}
+
+// ---------- Tables ----------
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 24px 0;
+  font-size: 0.95em;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+th {
+  background-color: rgba(155, 56, 56, 0.12);
+  color: $ink-deep;
+  padding: 10px 12px;
+  border: 1px solid $cinnabar-soft;
+  font-weight: 500;
+  text-align: left;
+}
+
+td {
+  padding: 10px 12px;
+  border: 1px solid rgba(155, 56, 56, 0.12);
+  vertical-align: top;
+}
+
+// ---------- Site footer ----------
+
+.site-footer {
+  background-color: rgba(202, 188, 164, 0.3);
+  border-top: 1px solid $cinnabar-soft;
+  color: $muted;
+  padding: 40px 0;
+  font-size: 14px;
+  letter-spacing: 0.03em;
+}
+
+.footer-col-wrapper {
+  color: $muted;
+}
+
+.contact-list,
+.social-media-list {
+  list-style: none;
+  margin-left: 0;
+}
+
+// ---------- Responsive ----------
+
+@media screen and (max-width: 600px) {
+  .hero {
+    padding: 50px 16px 40px;
+  }
+  .hero-mark {
+    font-size: 72px;
+    &::after {
+      width: 14px;
+      height: 14px;
+    }
+  }
+  .hero-tagline {
+    font-size: 16px;
+  }
+}

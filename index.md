@@ -4,15 +4,14 @@ title: 墨鴉工作室
 permalink: /
 ---
 
-# 墨鴉工作室 ／ Inkcrow Studio
+<div class="hero">
+  <img src="{{ '/assets/logo-light-textless.webp' | relative_url }}" alt="墨鴉工作室 LOGO" class="hero-logo" />
+  <h1 class="hero-title">墨鴉工作室</h1>
+  <p class="hero-en">INKCROW STUDIO</p>
+  <p class="hero-tagline">獨立工作室、目前以個人開發者身份營運。</p>
+</div>
 
-獨立工作室，目前以個人開發者身份營運。
-
----
-
-## 作品
-
-### 願行
+## 作品 — 願行
 
 一款關於**行走**的應用。用走路累積願力、與民間信仰的神明同行。
 
@@ -23,10 +22,6 @@ permalink: /
 
 ## 聯絡
 
-- **客服與一般詢問：** support@inkcrow-studio.com
+- **支援與一般詢問：** [support@inkcrow-studio.com](mailto:support@inkcrow-studio.com)
 
 收件後我們盡量在 7 個工作天內回覆。
-
----
-
-> 願你走得安好。
