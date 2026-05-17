@@ -1,0 +1,8 @@
+# Inkcrow Studio Security Contact (RFC 9116)
+# 安全研究員、若發現 inkcrow-studio.com 或所屬產品 (Yuanxing/願行) 的弱點、
+# 請依下列聯絡資訊回報。我們會在 7 個工作天內回覆。
+
+Contact: mailto:support@inkcrow-studio.com
+Expires: 2027-05-17T00:00:00.000Z
+Preferred-Languages: zh-TW, en
+Canonical: https://inkcrow-studio.com/.well-known/security.txt

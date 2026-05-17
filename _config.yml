@@ -25,3 +25,8 @@ exclude:
   - Gemfile
   - Gemfile.lock
   - .gitignore
+
+# Jekyll 預設排除 dot-prefixed dir、明確 include .well-known
+# 讓 /.well-known/security.txt 能被 deploy（RFC 9116）
+include:
+  - .well-known
