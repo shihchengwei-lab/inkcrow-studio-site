@@ -92,32 +92,32 @@ a {
 
 .hero-logo {
   display: block;
-  margin: 0 auto 24px;
-  width: 240px;
+  margin: 0 auto 28px;
+  width: 260px;
   height: auto;
-  // mix-blend-mode multiply: 白色 × 米色 = 米色（視覺消失）、黑色 × 米色 = 黑色
-  mix-blend-mode: multiply;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.04));
+  // 透明 PNG 已去背、不需要 mix-blend-mode
 }
 
 .hero-title {
   font-family: "Noto Serif TC", serif;
   font-weight: 500;
-  font-size: 36px;
+  font-size: 38px;
   color: $ink-deep;
-  letter-spacing: 0.1em;
-  margin: 0 0 0.2em;
+  letter-spacing: 0.12em;
+  margin: 0 0 0.6em;
   line-height: 1.2;
 }
 
-.hero-en {
-  font-family: "Georgia", serif;
-  font-style: italic;
-  font-size: 16px;
-  color: $muted;
-  letter-spacing: 0.2em;
-  margin-bottom: 1.5em;
-  text-transform: uppercase;
+// minima home layout 會自動 render page.title 為 .page-heading、
+// 我們已在 hero 內手寫 h1.hero-title、要把這個自動產生的隱藏
+.page-heading {
+  display: none;
+}
+
+// 提升 h2 在 page content 內的層次感
+.page-content h2 {
+  font-size: 26px;
+  margin-top: 2em;
 }
 
 .hero-tagline {
@@ -238,12 +238,11 @@ td {
   .hero {
     padding: 50px 16px 40px;
   }
-  .hero-mark {
-    font-size: 72px;
-    &::after {
-      width: 14px;
-      height: 14px;
-    }
+  .hero-logo {
+    width: 200px;
+  }
+  .hero-title {
+    font-size: 30px;
   }
   .hero-tagline {
     font-size: 16px;

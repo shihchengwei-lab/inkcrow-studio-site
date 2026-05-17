@@ -5,9 +5,8 @@ permalink: /
 ---
 
 <div class="hero">
-  <img src="{{ '/assets/logo-light-textless.webp' | relative_url }}" alt="墨鴉工作室 LOGO" class="hero-logo" />
+  <img src="{{ '/assets/logo-mark.png' | relative_url }}" alt="墨鴉工作室 LOGO" class="hero-logo" />
   <h1 class="hero-title">墨鴉工作室</h1>
-  <p class="hero-en">INKCROW STUDIO</p>
   <p class="hero-tagline">獨立工作室、目前以個人開發者身份營運。</p>
 </div>
 

@@ -9,6 +9,9 @@ vendor/
 .bundle/
 Gemfile.lock
 
+# Preview screenshots (local only, not for deploy)
+_preview-*.png
+
 # OS / editor
 .DS_Store
 Thumbs.db
