@@ -401,13 +401,26 @@ body::before {
 @media (max-width: 900px) {
   .container { padding: 0 var(--space-24); }
   .hero { grid-template-columns: 1fr; gap: var(--space-48); padding-top: var(--space-64); padding-bottom: var(--space-64); min-height: auto; }
-  .hero-visual { height: 320px; min-height: 320px; }
+  .hero-title { font-size: clamp(72px, 22vw, 96px); }
+  .hero-title-en { font-size: clamp(24px, 7vw, 32px); }
+  .hero-tagline { font-size: 18px; }
+  .hero-visual { height: 280px; min-height: 280px; }
   .studio { grid-template-columns: 1fr; gap: var(--space-32); padding: var(--space-64) 0; }
+  .studio-left { padding-top: 0; }
+  .studio-quote { font-size: clamp(40px, 11vw, 56px); }
+  .studio-right p { font-size: 17px; }
   .work-header { grid-template-columns: 1fr; gap: var(--space-24); margin-bottom: var(--space-48); }
   .work-meta { padding-top: 0; }
+  .work-title { font-size: clamp(56px, 17vw, 72px); }
+  .work-subtitle { font-size: clamp(18px, 5.5vw, 24px); }
+  .work-tagline { font-size: 18px; }
   .work-cols { grid-template-columns: 1fr; gap: var(--space-48); }
+  .work-cta { margin-top: var(--space-64); }
+  .footer { padding: var(--space-64) 0 var(--space-32); margin-top: var(--space-64); }
   .footer-grid { grid-template-columns: 1fr 1fr; gap: var(--space-48); }
   .footer-bottom { flex-direction: column; gap: var(--space-16); }
+  /* 裝飾鳥／植物在手機版會跟內文重疊，整段隱藏 */
+  .inline-deco { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

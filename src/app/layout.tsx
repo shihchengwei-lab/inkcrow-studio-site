@@ -1,10 +1,16 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "墨鴉工作室 — 願行 Pilgrimage on Foot",
   description:
     "墨鴉是一間獨立工作室，做一點自己想玩的遊戲。現役作品「願行」，用走路累積願力，與民間信仰的神明同行。",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
