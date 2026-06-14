@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>墨鴉工作室 — v0 mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Serif+TC:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F4EDE3;
+  --fg: #1F1B17;
+  --fg-muted: #6B635A;
+  --accent-amber: #D4A574;
+  --accent-vermillion: #A03A2C;
+  --accent-jade: #3D5A3A;
+  --hairline: rgba(31, 27, 23, 0.12);
+
+  --font-serif-en: 'Lora', serif;
+  --font-serif-zh: 'Noto Serif TC', 'Lora', serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  --space-8: 8px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-48: 48px;
+  --space-64: 64px;
+  --space-96: 96px;
+  --space-128: 128px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-serif-zh);
+  background: var(--bg);
+  color: var(--fg);
+  line-height: 1.7;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  text-wrap: pretty;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-32);
+}
+
+/* ============ HERO ============ */
+.hero {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  align-items: center;
+  gap: var(--space-96);
+  padding: var(--space-128) 0;
+}
+
+.hero-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  margin-bottom: var(--space-48);
+}
+
+.hero-title {
+  font-family: var(--font-serif-zh);
+  font-weight: 500;
+  font-size: clamp(64px, 9vw, 112px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-24);
+}
+
+.hero-title-en {
+  font-family: var(--font-serif-en);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(28px, 3.5vw, 44px);
+  color: var(--fg-muted);
+  margin-bottom: var(--space-64);
+  letter-spacing: 0.01em;
+}
+
+.hero-tagline {
+  font-size: 19px;
+  max-width: 480px;
+  color: var(--fg);
+}
+
+.hero-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-logo img {
+  max-width: 380px;
+  width: 100%;
+  height: auto;
+  opacity: 0.94;
+}
+
+/* ============ DIVIDER ============ */
+.divider {
+  height: 1px;
+  background: var(--hairline);
+  margin: var(--space-128) 0;
+}
+
+/* ============ SECTION ============ */
+.section {
+  padding: var(--space-128) 0;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: var(--space-96);
+}
+
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  padding-top: var(--space-16);
+}
+
+.section-content h2 {
+  font-family: var(--font-serif-zh);
+  font-weight: 500;
+  font-size: clamp(36px, 4.5vw, 56px);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin-bottom: var(--space-48);
+  max-width: 640px;
+}
+
+.section-content p {
+  font-size: 19px;
+  max-width: 600px;
+  margin-bottom: var(--space-24);
+}
+
+.section-content p:last-child { margin-bottom: 0; }
+
+/* ============ PILGRIMAGE ============ */
+.pilgrimage-hero-image {
+  width: 100%;
+  margin-top: var(--space-96);
+  margin-bottom: var(--space-96);
+  padding: var(--space-48) 0;
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.pilgrimage-hero-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.mockup-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-48);
+  justify-items: center;
+  margin-top: var(--space-96);
+}
+
+/* ============ iPhone Frame ============ */
+.iphone {
+  position: relative;
+  width: 100%;
+  max-width: 240px;
+  aspect-ratio: 9 / 19.5;
+  background: var(--fg);
+  border-radius: 28px;
+  padding: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.iphone::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 56px;
+  height: 16px;
+  background: var(--fg);
+  border-radius: 8px;
+  z-index: 2;
+}
+
+.iphone-screen {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  border-radius: 22px;
+  overflow: hidden;
+}
+
+.mockup-caption {
+  margin-top: var(--space-24);
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+
+/* ============ FOOTER ============ */
+.footer {
+  padding: var(--space-96) 0 var(--space-48);
+  border-top: 1px solid var(--hairline);
+  margin-top: var(--space-128);
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-64);
+  margin-bottom: var(--space-64);
+}
+
+.footer h3 {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  margin-bottom: var(--space-24);
+  font-weight: 400;
+}
+
+.footer-list { list-style: none; }
+.footer-list li { margin-bottom: var(--space-16); font-size: 16px; }
+
+.footer a {
+  color: var(--fg);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 200ms ease-out;
+}
+
+.footer a:hover {
+  border-bottom-color: var(--fg);
+}
+
+.footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  padding-top: var(--space-32);
+  border-top: 1px solid var(--hairline);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  color: var(--fg-muted);
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 768px) {
+  .container { padding: 0 var(--space-24); }
+  .hero { grid-template-columns: 1fr; gap: var(--space-64); padding: var(--space-64) 0; min-height: auto; text-align: left; }
+  .hero-logo img { max-width: 240px; }
+  .section { grid-template-columns: 1fr; gap: var(--space-32); padding: var(--space-64) 0; }
+  .section-label { padding-top: 0; }
+  .mockup-grid { grid-template-columns: 1fr; gap: var(--space-64); }
+  .pilgrimage-hero-image { margin-top: var(--space-64); margin-bottom: var(--space-64); }
+  .footer-grid { grid-template-columns: 1fr; gap: var(--space-48); }
+  .footer-bottom { flex-direction: column; gap: var(--space-16); }
+  .divider { margin: var(--space-64) 0; }
+}
+
+/* prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+  html { scroll-behavior: auto; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============ HERO ============ -->
+<section class="hero container">
+  <div class="hero-text">
+    <div class="hero-eyebrow">Independent Studio &middot; Taipei</div>
+    <h1 class="hero-title">墨鴉工作室</h1>
+    <div class="hero-title-en">Inkcrow Studio</div>
+    <p class="hero-tagline">獨立工作室、目前以個人開發者身份營運。<br>關注身體、信仰、與日常修行之間的微小連結。</p>
+  </div>
+  <div class="hero-logo">
+    <img src="assets/logo-mark.png" alt="墨鴉工作室 標記">
+  </div>
+</section>
+
+<!-- ============ STUDIO ============ -->
+<section class="section container">
+  <div class="section-label">關於 / About</div>
+  <div class="section-content">
+    <h2>把民俗放進掌中。</h2>
+    <p>墨鴉是一間獨立工作室。沒有大團隊、不追求量產。每一個作品都從「日常裡的儀式感」出發、把傳統信仰裡的溫柔遞給願意走進來的人。</p>
+    <p>目前以個人開發者身份營運。作品以軟體與互動體驗為主。</p>
+  </div>
+</section>
+
+<div class="container"><div class="divider"></div></div>
+
+<!-- ============ PILGRIMAGE ============ -->
+<section class="section container">
+  <div class="section-label">作品 / Work</div>
+  <div class="section-content">
+    <h2>願行 — 走路、是一種供奉。</h2>
+    <p>用走路累積願力、與民間信仰的神明同行。每一步、都是一次安靜的回禮。</p>
+  </div>
+</section>
+
+<div class="container">
+  <div class="pilgrimage-hero-image">
+    <img src="assets/feature_graphic.png" alt="願行 — 走路積願、奉請結緣">
+  </div>
+
+  <div class="mockup-grid">
+    <div>
+      <div class="iphone">
+        <div class="iphone-screen" style="background-image: url('assets/screenshot_1_home_path.png');"></div>
+      </div>
+      <div class="mockup-caption">行願 / Pilgrimage Path</div>
+    </div>
+    <div>
+      <div class="iphone">
+        <div class="iphone-screen" style="background-image: url('assets/screenshot_2_shrine_altar.png');"></div>
+      </div>
+      <div class="mockup-caption">神壇 / Personal Shrine</div>
+    </div>
+    <div>
+      <div class="iphone">
+        <div class="iphone-screen" style="background-image: url('assets/screenshot_3_gacha_reveal_ur.png');"></div>
+      </div>
+      <div class="mockup-caption">奉請 / Faith Ritual</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer container">
+  <div class="footer-grid">
+    <div>
+      <h3>聯絡 / Contact</h3>
+      <ul class="footer-list">
+        <li><a href="mailto:support@inkcrow-studio.com">support@inkcrow-studio.com</a></li>
+        <li>收件後 7 個工作天內回覆</li>
+      </ul>
+    </div>
+    <div>
+      <h3>法律 / Legal</h3>
+      <ul class="footer-list">
+        <li><a href="#privacy">隱私權政策</a></li>
+        <li><a href="#terms">服務條款</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3>作品 / Works</h3>
+      <ul class="footer-list">
+        <li><a href="#pilgrimage">願行 — Pilgrimage on Foot</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div>&copy; 2026 INKCROW STUDIO</div>
+    <div>Taipei, Taiwan</div>
+  </div>
+</footer>
+
+</body>
+</html>

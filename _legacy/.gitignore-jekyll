@@ -1,0 +1,20 @@
+# Jekyll build output
+_site/
+.sass-cache/
+.jekyll-cache/
+.jekyll-metadata
+
+# Ruby bundler
+vendor/
+.bundle/
+Gemfile.lock
+
+# Preview screenshots (local only, not for deploy)
+_preview-*.png
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
