@@ -41,13 +41,13 @@ npx serve out
 1. 將更新後內容複製到本 repo 的 `_legacy/privacy.md` / `_legacy/terms.md`
 2. 保留檔頭 Jekyll front matter（`---` 區塊；Next.js 端 build 時會自動 strip）
 3. 確認內部連結（例：TERMS 中的 `/privacy/`）正確
-4. Commit + push 至 `master`，GitHub Actions 自動 build + deploy（約 1-3 分鐘）
+4. Commit + push 至 `main`，GitHub Actions 自動 build + deploy（約 1-3 分鐘）
 
 ## Deploy
 
 由 `.github/workflows/deploy.yml` 自動處理：
 
-1. push 到 master
+1. push 到 main
 2. GitHub Actions 跑 `npm ci` + `npm run build`
 3. 把 `out/` 上傳到 `actions/upload-pages-artifact`
 4. GitHub Pages 從 artifact 服務、綁 `inkcrow-studio.com` 自訂網域
