@@ -421,6 +421,9 @@ body::before {
   .footer-bottom { flex-direction: column; gap: var(--space-16); }
   /* 裝飾鳥／植物在手機版會跟內文重疊，整段隱藏 */
   .inline-deco { display: none; }
+  /* 手機 viewport 短，原本 -0.3 parallax 係數會把背景圖推出 viewport
+     直接關掉 parallax、背景固定 */
+  body::before { background-position-y: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
