@@ -1,7 +1,10 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
+  const [audioOn, setAudioOn] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
   useEffect(() => {
     const setScrollY = () => {
       document.body.style.setProperty("--scroll-y", `${window.scrollY}px`);
@@ -33,6 +36,101 @@ export default function Home() {
       observer?.disconnect();
     };
   }, []);
+
+  // 竹雞鳥叫：間歇模式、每 8-15s 觸發一次、每次走 5s envelope
+  // 不對稱三角音量：peak @ distance=400、內 200、外 4000
+  useEffect(() => {
+    if (!audioOn || !audioRef.current) return;
+    const partridgeEl = document.querySelector<HTMLElement>(".partridge-deco");
+    if (!partridgeEl) return;
+    const audio = audioRef.current;
+
+    let timeoutId: number | null = null;
+    let cancelled = false;
+    const BASE_VOLUME = 0.05;
+    const PEAK_DISTANCE = 400;
+    const INNER_WIDTH = 200;
+    const OUTER_WIDTH = 4000;
+    const FADE_IN_MS = 500;
+    const FADE_OUT_MS = 600;
+    const PLAY_DURATION_MS = 5000; // 切在第 5 聲後、避開最後 0.5s 的半聲
+
+    const playCall = () => {
+      if (cancelled) return;
+      const rect = partridgeEl.getBoundingClientRect();
+      const partridgeCenterY = rect.top + rect.height / 2;
+      const viewportCenterY = window.innerHeight / 2;
+      const distance = Math.abs(partridgeCenterY - viewportCenterY);
+      let peakVol: number;
+      if (distance < PEAK_DISTANCE - INNER_WIDTH) {
+        peakVol = 0;
+      } else if (distance < PEAK_DISTANCE) {
+        peakVol = BASE_VOLUME * (distance - (PEAK_DISTANCE - INNER_WIDTH)) / INNER_WIDTH;
+      } else {
+        peakVol = Math.max(0, BASE_VOLUME * (1 - (distance - PEAK_DISTANCE) / OUTER_WIDTH));
+      }
+
+      if (peakVol >= 0.005) {
+        audio.volume = 0;
+        audio.currentTime = 0;
+        audio.play().catch(() => {
+          /* play 失敗就忽略 */
+        });
+
+        // Volume envelope: fade-in → hold → fade-out → pause
+        const start = performance.now();
+        const tick = () => {
+          if (cancelled) return;
+          const t = performance.now() - start;
+          if (t >= PLAY_DURATION_MS) {
+            audio.pause();
+            audio.volume = 0;
+            return;
+          }
+          let factor: number;
+          if (t < FADE_IN_MS) {
+            factor = t / FADE_IN_MS;
+          } else if (t < PLAY_DURATION_MS - FADE_OUT_MS) {
+            factor = 1;
+          } else {
+            factor = (PLAY_DURATION_MS - t) / FADE_OUT_MS;
+          }
+          audio.volume = peakVol * Math.max(0, Math.min(1, factor));
+          requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }
+
+      const gap = 8000 + Math.random() * 7000;
+      timeoutId = window.setTimeout(playCall, gap);
+    };
+
+    audio.loop = false;
+    const firstGap = 8000 + Math.random() * 7000;
+    timeoutId = window.setTimeout(playCall, firstGap);
+
+    return () => {
+      cancelled = true;
+      if (timeoutId !== null) clearTimeout(timeoutId);
+      audio.pause();
+    };
+  }, [audioOn]);
+
+  const toggleAudio = () => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio("/assets/partridge_call.mp3");
+      audioRef.current.preload = "auto";
+    }
+    // 第一次開啟時、在 user gesture 同步中 prime audio（iOS 友善）
+    // 不在這裡 pause、留給 useEffect 接手 loop 播放、避免 race condition
+    if (!audioOn) {
+      audioRef.current.volume = 0;
+      audioRef.current.play().catch(() => {
+        /* prime 失敗也繼續 */
+      });
+    }
+    setAudioOn((v) => !v);
+  };
 
   return (
     <>
@@ -96,11 +194,8 @@ export default function Home() {
 
       <section className="work container" id="work">
         <div className="work-header fade-up">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/assets/butterfly_corner.png"
-            alt=""
-            className="inline-deco"
+          <span
+            className="inline-deco butterfly-deco"
             aria-hidden="true"
           />
           <div className="work-meta">Work 01 / Pilgrimage on Foot</div>
@@ -164,15 +259,21 @@ export default function Home() {
             aria-hidden="true"
           />
           <a href="#">Available on Google Play →</a>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/assets/partridge_corner.png"
-            alt=""
-            className="inline-deco"
+          <span
+            className="inline-deco partridge-deco"
             aria-hidden="true"
           />
         </div>
       </section>
+
+      <button
+        type="button"
+        onClick={toggleAudio}
+        className="audio-toggle"
+        aria-label={audioOn ? "關閉鳥叫" : "開啟鳥叫"}
+      >
+        {audioOn ? "🔊 鳥叫 開" : "🔇 鳥叫 關"}
+      </button>
 
       <footer className="footer">
         <div className="container">

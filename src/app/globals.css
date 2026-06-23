@@ -393,9 +393,75 @@ body::before {
 
 .studio-left .inline-deco { left: 0; top: 256px; }
 .studio-right .inline-deco { right: 0; top: calc(-1 * var(--space-64)); }
-.work-cta .inline-deco:nth-of-type(1) { left: 0; top: 50%; transform: translateY(-50%); }
-.work-cta .inline-deco:nth-of-type(2) { right: 0; top: 50%; transform: translateY(-50%); }
+.work-cta img.inline-deco:nth-of-type(1) { left: 0; top: 50%; transform: translateY(-50%); }
+.work-cta img.inline-deco:nth-of-type(2) { right: 0; top: 50%; transform: translateY(-50%); }
 .work-header .inline-deco { left: 0; top: var(--space-64); }
+
+/* ============ BUTTERFLY FLAP ============ */
+/* 同一張 PNG 渲染兩次、各只顯示一半、繞圖中軸（蝴蝶身體）rotateY */
+.butterfly-deco {
+  aspect-ratio: 1;
+  perspective: 600px;
+}
+.butterfly-deco::before,
+.butterfly-deco::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url('/assets/butterfly_corner.png') center/contain no-repeat;
+  transform-origin: center center;
+  backface-visibility: hidden;
+}
+.butterfly-deco::before {
+  clip-path: inset(0 50% 0 0);
+  animation: butterfly-flap-left 1.4s ease-in-out infinite;
+}
+.butterfly-deco::after {
+  clip-path: inset(0 0 0 50%);
+  animation: butterfly-flap-right 1.4s ease-in-out infinite;
+}
+@keyframes butterfly-flap-left {
+  0%   { transform: rotateY(0deg);  animation-timing-function: ease-out; }
+  25%  { transform: rotateY(55deg); animation-timing-function: ease-in-out; }
+  100% { transform: rotateY(0deg); }
+}
+@keyframes butterfly-flap-right {
+  0%   { transform: rotateY(0deg);   animation-timing-function: ease-out; }
+  25%  { transform: rotateY(-55deg); animation-timing-function: ease-in-out; }
+  100% { transform: rotateY(0deg); }
+}
+
+/* ============ PARTRIDGE PECK ============ */
+/* 動畫由 WebP 本身負責（partridge_peck.webp、24 frame、user 自製） */
+.partridge-deco {
+  right: 0;
+  top: 50%;
+  aspect-ratio: 1;
+  background: url('/assets/partridge_peck.webp') center/contain no-repeat;
+  transform: translateY(-50%);
+}
+
+/* ============ AUDIO TOGGLE ============ */
+.audio-toggle {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 100;
+  padding: 8px 14px;
+  font-family: inherit;
+  font-size: 13px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+  cursor: pointer;
+  color: inherit;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition: background 0.15s ease;
+}
+.audio-toggle:hover {
+  background: rgba(255, 255, 255, 0.95);
+}
 
 /* ============ RESPONSIVE ============ */
 @media (max-width: 900px) {
@@ -430,6 +496,8 @@ body::before {
   * { transition: none !important; animation: none !important; }
   html { scroll-behavior: auto; }
   .fade-up { opacity: 1; transform: none; }
+  /* 瀏覽器不會因 reduced-motion 暫停 WebP/GIF；手動換回靜態圖 */
+  .partridge-deco { background-image: url('/assets/partridge_corner.png'); }
 }
 
 /* ============ LEGAL PAGES (privacy / terms) ============ */
