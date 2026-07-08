@@ -258,7 +258,23 @@ export default function Home() {
             className="inline-deco"
             aria-hidden="true"
           />
-          <a href="#">Available on Google Play →</a>
+          <p className="work-cta-note">封閉測試中 · 兩步驟加入</p>
+          <div className="work-cta-links">
+            <a
+              href="https://groups.google.com/g/yuan-xing-testers"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              ① 加入測試群組 →
+            </a>
+            <a
+              href="https://play.google.com/apps/testing/tw.yuanxing.app"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              ② 下載測試版 →
+            </a>
+          </div>
           <span
             className="inline-deco partridge-deco"
             aria-hidden="true"
