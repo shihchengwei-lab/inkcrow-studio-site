@@ -46,3 +46,6 @@ Thumbs.db
 .vscode/
 .idea/
 
+# 給 AI 的網頁設計準則：只放本機，不進 git、不部署（CLAUDE.md 匯入它）
+AGENT.md
+

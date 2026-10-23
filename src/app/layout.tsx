@@ -19,8 +19,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-Hant">
+    <html lang="zh-Hant" suppressHydrationWarning>
       <head>
+        {/* 首頁進場揭幕每個瀏覽分頁只播一次：在畫面繪製前先看這個分頁播過沒有，
+            播過就在 <html> 加 data-intro-seen，由 CSS 把揭幕隱藏。條款頁不算播過。 */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{if(location.pathname!=="/")return;if(sessionStorage.getItem("intro-seen"))document.documentElement.setAttribute("data-intro-seen","");else sessionStorage.setItem("intro-seen","1")}catch(e){}})()`,
+          }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"

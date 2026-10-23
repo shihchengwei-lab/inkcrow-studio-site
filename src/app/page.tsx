@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import Immersion from "./Immersion";
 
 export default function Home() {
   const [audioOn, setAudioOn] = useState(false);
@@ -134,12 +135,56 @@ export default function Home() {
 
   return (
     <>
+      {/* 進場墨滴揭幕：純 CSS 動畫，約 1.7 秒後自己消失，不擋操作；同一個瀏覽分頁只播一次（見 layout.tsx） */}
+      <div className="intro" aria-hidden="true">
+        <div className="intro-layer intro-ink" />
+        <div className="intro-layer intro-paper" />
+        <div className="intro-drop" />
+      </div>
+      {/* 一天的光線：三層半透明色罩，顏色取自既有的琥珀與朱紅，由 Immersion 依捲動調整 */}
+      <div className="daylight" aria-hidden="true">
+        <div className="dl dl-dawn" />
+        <div className="dl dl-dusk" />
+        <div className="dl-sun" />
+      </div>
+      {/* 墨暈標題用的濾鏡：每個字一組，才能各自暈開 */}
+      <svg
+        width="0"
+        height="0"
+        aria-hidden="true"
+        style={{ position: "absolute" }}
+      >
+        <defs>
+          {[0, 1].map((i) => (
+            <filter
+              key={i}
+              id={`ink-bleed-${i}`}
+              x="-30%"
+              y="-30%"
+              width="160%"
+              height="160%"
+              colorInterpolationFilters="sRGB"
+            >
+              <feGaussianBlur id={`ink-blur-${i}`} stdDeviation="0" />
+              <feColorMatrix
+                id={`ink-mat-${i}`}
+                type="matrix"
+                values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0"
+              />
+            </filter>
+          ))}
+        </defs>
+      </svg>
+      <Immersion />
       <section className="hero container">
         <div className="hero-text">
           <div className="eyebrow hero-eyebrow">
             Inkcrow Studio · Independent · Taipei
           </div>
-          <h1 className="hero-title">墨鴉</h1>
+          <h1 className="hero-title">
+            <span className="ink-char">墨</span>
+            <span className="ink-char">鴉</span>
+          </h1>
           <div className="hero-title-en">Inkcrow Studio</div>
           <p className="hero-tagline">獨立工作室、做一點自己想玩的遊戲。</p>
           <a href="#work" className="hero-chip">
@@ -149,7 +194,7 @@ export default function Home() {
         <div className="hero-visual">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/assets/logo-mark.png"
+            src="/assets/logo-mark.webp"
             alt="墨鴉工作室 標記"
             style={{ width: "100%", height: "100%", objectFit: "contain" }}
           />
@@ -162,7 +207,7 @@ export default function Home() {
           <span className="rule-heavy"></span>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/assets/hibiscus_corner.png"
+            src="/assets/hibiscus_corner.webp"
             alt=""
             className="inline-deco"
             aria-hidden="true"
@@ -177,7 +222,7 @@ export default function Home() {
           <p>目前以個人開發者身份營運。作品以軟體與互動體驗為主。</p>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/assets/cedar_corner.png"
+            src="/assets/cedar_corner.webp"
             alt=""
             className="inline-deco"
             aria-hidden="true"
@@ -211,7 +256,7 @@ export default function Home() {
         <div className="work-hero-image fade-up">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/assets/work_hero.png"
+            src="/assets/work_hero.webp"
             alt="願行 — 神明陪你日常行走"
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
           />
@@ -219,13 +264,14 @@ export default function Home() {
 
         <div className="work-cols">
           <div className="work-col fade-up">
-            <div className="work-col-visual">
+            <div className="work-col-visual incense-visual">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/assets/col_1_wish_strip.png"
+                src="/assets/col_1_wish_strip.webp"
                 alt="累積願力 — 線香香爐"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
+              <canvas className="smoke-canvas" aria-hidden="true" />
             </div>
             <div className="work-col-en">accumulation</div>
             <h3>累積願力</h3>
@@ -237,7 +283,7 @@ export default function Home() {
             <div className="work-col-visual">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/assets/col_2_companion.png"
+                src="/assets/col_2_companion.webp"
                 alt="神明同行 — 歸安陪女玩家走田野"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
@@ -253,7 +299,7 @@ export default function Home() {
         <div className="work-cta">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/assets/barbet_corner.png"
+            src="/assets/barbet_corner.webp"
             alt=""
             className="inline-deco"
             aria-hidden="true"
