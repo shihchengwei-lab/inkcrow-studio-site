@@ -4,7 +4,7 @@ import { useEffect } from "react";
 /*
  * 首頁沉浸效果（只負責動態，不負責版面）
  * 1. 一天的光線：捲動時，紙面疊的光影色罩跟著變
- * 2. 墨暈標題：「墨鴉」兩字進場時從暈開的墨收攏成清楚的字
+ * 2. 墨暈標題：「墨鴉」兩字進場時從暈開的墨收攏成清楚的字；游標停在字上就暈開，離開才收攏
  * 3. 線香煙霧：小畫布疊在香爐圖上，煙會被游標撥動
  * 4. 活的蝴蝶與竹雞：蝴蝶閃躲游標，點竹雞會飛走、過幾秒回來
  * 全部在使用者要求「減少動態」時不啟動。
@@ -70,6 +70,8 @@ function setupDaylight(): () => void {
 
 /* ---------- 2. 墨暈標題 ---------- */
 const INK_MAX_BLUR = 14;
+// 游標停在字上時，暈開程度停在多少（0 清楚、1 最糊）
+const INK_HOVER_K = 0.6;
 // 進場動畫的開始時間（毫秒，從頁面載入起算），配合進場墨滴揭幕
 const INK_START_AT = 750;
 
@@ -84,6 +86,8 @@ function setupInk(): () => void {
     blur: document.getElementById(`ink-blur-${i}`),
     mat: document.getElementById(`ink-mat-${i}`),
     k: 0, // 暈開程度：1 最糊，0 清楚
+    target: 0, // k 正在往哪裡走：游標停在字上是 INK_HOVER_K，否則是 0
+    hover: false,
     raf: 0,
     last: 0,
   }));
@@ -106,25 +110,46 @@ function setupInk(): () => void {
     const s = state[i];
     const frames = clamp((now - s.last) / 16.67, 0, 3);
     s.last = now;
-    s.k *= Math.pow(0.945, frames); // 每幀收攏一點，越接近清楚越慢
-    if (s.k < 0.015) {
+    // 每幀往目標走一段：暈開比收攏慢一點，越接近目標越慢（有慣性）
+    const rate = s.target > s.k ? 0.04 : 0.055;
+    s.k += (s.target - s.k) * (1 - Math.pow(1 - rate, frames));
+    if (s.target === 0 && s.k < 0.015) {
       s.k = 0;
       s.raf = 0;
       s.el.style.filter = "";
       return;
     }
     apply(i);
+    if (s.target > 0 && Math.abs(s.target - s.k) < 0.004) {
+      s.raf = 0; // 停在暈開的狀態，等游標離開再繼續
+      return;
+    }
     s.raf = requestAnimationFrame((t) => loop(i, t));
   };
 
-  const bloom = (i: number, k: number) => {
+  const run = (i: number) => {
     const s = state[i];
-    s.k = k;
-    apply(i);
     if (!s.raf) {
       s.last = performance.now();
       s.raf = requestAnimationFrame((t) => loop(i, t));
     }
+  };
+
+  // 進場：從 k 開始往清楚收攏（游標此時已在字上，就收攏到暈開的程度為止）
+  const bloom = (i: number, k: number) => {
+    const s = state[i];
+    s.k = k;
+    s.target = s.hover ? INK_HOVER_K : 0;
+    apply(i);
+    run(i);
+  };
+
+  // 游標進入：往暈開的程度走；游標離開：往清楚走
+  const setHover = (i: number, on: boolean) => {
+    const s = state[i];
+    s.hover = on;
+    s.target = on ? INK_HOVER_K : 0;
+    run(i);
   };
 
   // 先把兩個字設成糊的，等到揭幕時間再開始收攏
@@ -139,17 +164,20 @@ function setupInk(): () => void {
   });
 
   const hoverHandlers = chars.map((el, i) => {
-    const h = () => {
-      if (state[i].k === 0) bloom(i, 0.5);
-    };
-    el.addEventListener("pointerenter", h);
-    return h;
+    const enter = () => setHover(i, true);
+    const leave = () => setHover(i, false);
+    el.addEventListener("pointerenter", enter);
+    el.addEventListener("pointerleave", leave);
+    el.addEventListener("pointercancel", leave);
+    return { enter, leave };
   });
 
   return () => {
     timers.forEach((t) => clearTimeout(t));
     chars.forEach((el, i) => {
-      el.removeEventListener("pointerenter", hoverHandlers[i]);
+      el.removeEventListener("pointerenter", hoverHandlers[i].enter);
+      el.removeEventListener("pointerleave", hoverHandlers[i].leave);
+      el.removeEventListener("pointercancel", hoverHandlers[i].leave);
       el.style.filter = "";
       if (state[i].raf) cancelAnimationFrame(state[i].raf);
     });
