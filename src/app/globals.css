@@ -541,6 +541,42 @@ body::before {
 html[data-intro-seen] .intro { display: none; }
 html[data-intro-seen] .ink-char { animation-delay: 0ms; }
 
+/* ============ 換頁墨色轉場 ============ */
+/* 離開頁：InkNavigation.tsx 在點擊位置放 .nav-exit，用 clip-path 擴成滿版墨色。
+   新頁面：html 帶 data-nav-in 時，.nav-cover 一開始就是滿版墨色，洞從點擊位置（--cx、--cy）裂開退去。
+   不支援 @property 時洞不會開，改由整層淡出收場；不論如何約 1.2 秒後一定消失。 */
+.nav-exit {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: var(--fg);
+  pointer-events: none;
+}
+.nav-cover {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  pointer-events: none;
+  background: var(--fg);
+  --r: -10px;
+  -webkit-mask-image: radial-gradient(circle at var(--cx, 50%) var(--cy, 50%), transparent var(--r), #000 calc(var(--r) + 6px));
+  mask-image: radial-gradient(circle at var(--cx, 50%) var(--cy, 50%), transparent var(--r), #000 calc(var(--r) + 6px));
+}
+html[data-nav-in] .nav-cover {
+  display: block;
+  animation:
+    nav-open 800ms cubic-bezier(0.22, 0.7, 0.2, 1) 120ms both,
+    intro-gone 200ms ease-out 1000ms forwards;
+}
+@keyframes nav-open {
+  from { --r: -10px; }
+  to { --r: 150vmax; }
+}
+/* 從轉場進首頁：不再播進場揭幕，標題暈墨等墨退到一半再開始 */
+html[data-nav-in] .intro { display: none; }
+html[data-nav-in] .hero-title .ink-char { animation-delay: 350ms; }
+
 /* ============ 一天的光線 ============ */
 /* 三層半透明色罩墊在內容後面，顏色是既有的琥珀與朱紅；Immersion.tsx 依捲動進度調整 */
 .daylight {
@@ -628,7 +664,7 @@ html[data-intro-seen] .ink-char { animation-delay: 0ms; }
   /* 瀏覽器不會因 reduced-motion 暫停 WebP/GIF；手動換回靜態圖 */
   .partridge-deco { background-image: url('/assets/partridge_corner.webp'); }
   /* 進場揭幕、光影色罩、煙霧畫布在減少動態時整個不出現 */
-  .intro, .daylight, .smoke-canvas { display: none; }
+  .intro, .daylight, .smoke-canvas, .nav-exit, .nav-cover { display: none; }
 }
 
 /* ============ LEGAL PAGES (privacy / terms) ============ */

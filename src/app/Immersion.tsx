@@ -154,8 +154,14 @@ function setupInk(): () => void {
 
   // 先把兩個字設成糊的，等到揭幕時間再開始收攏
   // 這個分頁播過揭幕了（layout.tsx 標記），就不用等揭幕時間
-  const skipIntro = document.documentElement.hasAttribute("data-intro-seen");
-  const wait = skipIntro ? 0 : Math.max(0, INK_START_AT - performance.now());
+  // 從換頁墨色轉場進來：等墨退到一半（約 0.4 秒）再開始
+  const root = document.documentElement;
+  const skipIntro = root.hasAttribute("data-intro-seen");
+  const wait = root.hasAttribute("data-nav-in")
+    ? 400
+    : skipIntro
+      ? 0
+      : Math.max(0, INK_START_AT - performance.now());
   state.forEach((s, i) => {
     s.k = 1;
     apply(i);
