@@ -3,10 +3,9 @@ import { useEffect } from "react";
 
 /*
  * 首頁沉浸效果（只負責動態，不負責版面）
- * 1. 一天的光線：捲動時，紙面疊的光影色罩跟著變
- * 2. 墨暈標題：「墨鴉」兩字進場時從暈開的墨收攏成清楚的字；游標停在字上就暈開，離開才收攏
- * 3. 線香煙霧：小畫布疊在香爐圖上，煙會被游標撥動
- * 4. 活的蝴蝶與竹雞：蝴蝶閃躲游標，點竹雞會飛走、過幾秒回來
+ * 1. 墨暈標題：只在游標停留時暈開，離開後收攏；進場由 WaterInk 負責。
+ * 2. 線香煙霧：小畫布疊在香爐圖上，煙會被游標撥動
+ * 3. 活的蝴蝶與竹雞：蝴蝶閃躲游標，點竹雞會飛走、過幾秒回來
  * 全部在使用者要求「減少動態」時不啟動。
  */
 
@@ -15,65 +14,10 @@ const clamp = (v: number, lo: number, hi: number) =>
 
 const noop = () => {};
 
-/* ---------- 1. 一天的光線 ---------- */
-function setupDaylight(): () => void {
-  const dawn = document.querySelector<HTMLElement>(".dl-dawn");
-  const dusk = document.querySelector<HTMLElement>(".dl-dusk");
-  const sun = document.querySelector<HTMLElement>(".dl-sun");
-  if (!dawn || !dusk || !sun) return noop;
-
-  let target = 0;
-  let current = 0;
-  let raf = 0;
-
-  const read = () => {
-    const max = document.documentElement.scrollHeight - window.innerHeight;
-    target = max > 0 ? clamp(window.scrollY / max, 0, 1) : 0;
-  };
-
-  // p：整頁捲動進度，0 是頁首（早晨），1 是頁尾
-  const apply = (p: number) => {
-    dawn.style.opacity = String(clamp(1 - p / 0.5, 0, 1));
-    dusk.style.opacity = String(clamp((p - 0.45) / 0.5, 0, 1));
-    const arc = Math.sin(p * Math.PI);
-    sun.style.opacity = String(0.2 + 0.4 * arc);
-    sun.style.transform = `translate3d(${(p * 2 - 1) * 35}vw, ${6 - arc * 12}vh, 0)`;
-  };
-
-  const tick = () => {
-    current += (target - current) * 0.08;
-    if (Math.abs(target - current) > 0.0005) {
-      raf = requestAnimationFrame(tick);
-    } else {
-      current = target;
-      raf = 0;
-    }
-    apply(current);
-  };
-
-  const onChange = () => {
-    read();
-    if (!raf) raf = requestAnimationFrame(tick);
-  };
-
-  read();
-  current = target;
-  apply(current);
-  window.addEventListener("scroll", onChange, { passive: true });
-  window.addEventListener("resize", onChange);
-  return () => {
-    window.removeEventListener("scroll", onChange);
-    window.removeEventListener("resize", onChange);
-    if (raf) cancelAnimationFrame(raf);
-  };
-}
-
-/* ---------- 2. 墨暈標題 ---------- */
+/* ---------- 1. 墨暈標題 ---------- */
 const INK_MAX_BLUR = 14;
 // 游標停在字上時，暈開程度停在多少（0 清楚、1 最糊）
 const INK_HOVER_K = 0.6;
-// 進場動畫的開始時間（毫秒，從頁面載入起算），配合進場墨滴揭幕
-const INK_START_AT = 750;
 
 function setupInk(): () => void {
   const chars = Array.from(
@@ -91,7 +35,6 @@ function setupInk(): () => void {
     raf: 0,
     last: 0,
   }));
-  const timers: number[] = [];
 
   const apply = (i: number) => {
     const s = state[i];
@@ -135,15 +78,6 @@ function setupInk(): () => void {
     }
   };
 
-  // 進場：從 k 開始往清楚收攏（游標此時已在字上，就收攏到暈開的程度為止）
-  const bloom = (i: number, k: number) => {
-    const s = state[i];
-    s.k = k;
-    s.target = s.hover ? INK_HOVER_K : 0;
-    apply(i);
-    run(i);
-  };
-
   // 游標進入：往暈開的程度走；游標離開：往清楚走
   const setHover = (i: number, on: boolean) => {
     const s = state[i];
@@ -151,23 +85,6 @@ function setupInk(): () => void {
     s.target = on ? INK_HOVER_K : 0;
     run(i);
   };
-
-  // 先把兩個字設成糊的，等到揭幕時間再開始收攏
-  // 這個分頁播過揭幕了（layout.tsx 標記），就不用等揭幕時間
-  // 從換頁墨色轉場進來：等墨退到一半（約 0.4 秒）再開始
-  const root = document.documentElement;
-  const skipIntro = root.hasAttribute("data-intro-seen");
-  const wait = root.hasAttribute("data-nav-in")
-    ? 400
-    : skipIntro
-      ? 0
-      : Math.max(0, INK_START_AT - performance.now());
-  state.forEach((s, i) => {
-    s.k = 1;
-    apply(i);
-    s.raf = 0;
-    timers.push(window.setTimeout(() => bloom(i, 1), wait + i * 140));
-  });
 
   const hoverHandlers = chars.map((el, i) => {
     const enter = () => setHover(i, true);
@@ -179,7 +96,6 @@ function setupInk(): () => void {
   });
 
   return () => {
-    timers.forEach((t) => clearTimeout(t));
     chars.forEach((el, i) => {
       el.removeEventListener("pointerenter", hoverHandlers[i].enter);
       el.removeEventListener("pointerleave", hoverHandlers[i].leave);
@@ -190,7 +106,7 @@ function setupInk(): () => void {
   };
 }
 
-/* ---------- 3. 線香煙霧 ---------- */
+/* ---------- 2. 線香煙霧 ---------- */
 // 三支香燃燒端在香爐圖上的位置（佔圖寬高的比例，量自 col_1_wish_strip.webp）
 const INCENSE_TIPS = [
   { x: 0.456, y: 0.369 },
@@ -348,7 +264,7 @@ function setupSmoke(): () => void {
   };
 }
 
-/* ---------- 4. 活的蝴蝶與竹雞 ---------- */
+/* ---------- 3. 活的蝴蝶與竹雞 ---------- */
 // 蝴蝶可以飄動的範圍（相對原位，單位 px），避免蓋住右邊的標題
 const BF_X: [number, number] = [-60, 180];
 const BF_Y: [number, number] = [-50, 170];
@@ -518,14 +434,18 @@ function setupCreatures(): () => void {
 
 export default function Immersion() {
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const cleanups = [
-      setupDaylight(),
-      setupInk(),
-      setupSmoke(),
-      setupCreatures(),
-    ];
-    return () => cleanups.forEach((fn) => fn());
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let cleanups: (() => void)[] = [];
+    const sync = () => {
+      cleanups.forEach((fn) => fn());
+      cleanups = motion.matches ? [] : [setupInk(), setupSmoke(), setupCreatures()];
+    };
+    sync();
+    motion.addEventListener("change", sync);
+    return () => {
+      motion.removeEventListener("change", sync);
+      cleanups.forEach((fn) => fn());
+    };
   }, []);
   return null;
 }

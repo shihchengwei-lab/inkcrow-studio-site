@@ -479,141 +479,29 @@ body::before {
   background: rgba(255, 255, 255, 0.95);
 }
 
-/* ============ 進場墨滴揭幕 ============ */
-/* 一滴墨落在畫面中央，紙面從落點裂開一個圓洞，洞緣有一圈墨色往外擴。
-   上層紙色遮罩的洞比下層墨色遮罩的洞先開、開得快，兩洞之間就是那圈墨。
-   純 CSS：瀏覽器不支援 @property 時洞不會擴，改由整層淡出收場。 */
-@property --r {
+/* ============ 換頁墨色轉場 ============ */
+/* 紙幕下完成換頁，再從點擊處以柔邊向外揭開；正文維持原位。
+   註冊長度讓遮罩半徑能連續插值，不會退化成二元切換。 */
+@property --ink-radius {
   syntax: '<length>';
   inherits: false;
-  initial-value: -10px;
+  initial-value: 0px;
 }
-
-.intro {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  pointer-events: none;
-  animation: intro-gone 220ms ease-out 1500ms forwards;
-}
-@keyframes intro-gone {
-  to { opacity: 0; visibility: hidden; }
-}
-
-.intro-layer {
-  position: absolute;
-  inset: 0;
-  --r: -10px;
-  -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent var(--r), #000 calc(var(--r) + 6px));
-  mask-image: radial-gradient(circle at 50% 50%, transparent var(--r), #000 calc(var(--r) + 6px));
-}
-.intro-paper {
-  background: var(--bg);
-  animation: intro-open 1000ms cubic-bezier(0.22, 0.7, 0.2, 1) 400ms both;
-}
-.intro-ink {
-  background: var(--fg);
-  animation: intro-open 1000ms cubic-bezier(0.22, 0.7, 0.2, 1) 520ms both;
-}
-@keyframes intro-open {
-  from { --r: -10px; }
-  to { --r: calc(80vmax + 160px); }
-}
-
-.intro-drop {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 22px;
-  height: 30px;
-  margin: -15px 0 0 -11px;
-  background: var(--fg);
-  border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
-  animation: intro-drop 400ms cubic-bezier(0.55, 0, 0.9, 0.6) both;
-}
-@keyframes intro-drop {
-  from { transform: translateY(-40vh); opacity: 1; }
-  90% { transform: translateY(0) scale(1); opacity: 1; }
-  to { transform: translateY(0) scale(1.8); opacity: 0; }
-}
-
-/* 同一個瀏覽分頁播過一次後（layout.tsx 的內嵌程式會標記），揭幕不再出現，標題暈墨也不用等揭幕 */
-html[data-intro-seen] .intro { display: none; }
-html[data-intro-seen] .ink-char { animation-delay: 0ms; }
-
-/* ============ 換頁墨色轉場 ============ */
-/* 離開頁：InkNavigation.tsx 在點擊位置放 .nav-exit，用 clip-path 擴成滿版墨色。
-   新頁面：html 帶 data-nav-in 時，.nav-cover 一開始就是滿版墨色，洞從點擊位置（--cx、--cy）裂開退去。
-   不支援 @property 時洞不會開，改由整層淡出收場；不論如何約 1.2 秒後一定消失。 */
-.nav-exit {
+.nav-ink {
   position: fixed;
   inset: 0;
   z-index: 1100;
-  background: var(--fg);
-  pointer-events: none;
-}
-.nav-cover {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 1100;
-  pointer-events: none;
-  background: var(--fg);
-  --r: -10px;
-  -webkit-mask-image: radial-gradient(circle at var(--cx, 50%) var(--cy, 50%), transparent var(--r), #000 calc(var(--r) + 6px));
-  mask-image: radial-gradient(circle at var(--cx, 50%) var(--cy, 50%), transparent var(--r), #000 calc(var(--r) + 6px));
-}
-html[data-nav-in] .nav-cover {
-  display: block;
-  animation:
-    nav-open 800ms cubic-bezier(0.22, 0.7, 0.2, 1) 120ms both,
-    intro-gone 200ms ease-out 1000ms forwards;
-}
-@keyframes nav-open {
-  from { --r: -10px; }
-  to { --r: 150vmax; }
-}
-/* 從轉場進首頁：不再播進場揭幕，標題暈墨等墨退到一半再開始 */
-html[data-nav-in] .intro { display: none; }
-html[data-nav-in] .hero-title .ink-char { animation-delay: 350ms; }
-
-/* ============ 一天的光線 ============ */
-/* 三層半透明色罩墊在內容後面，顏色是既有的琥珀與朱紅；Immersion.tsx 依捲動進度調整 */
-.daylight {
-  position: fixed;
-  inset: 0;
   overflow: hidden;
+  background:
+    radial-gradient(ellipse at var(--ink-x) var(--ink-y), rgba(36,37,38,.075), transparent 65%),
+    var(--bg);
+  mask-image: radial-gradient(circle at var(--ink-x) var(--ink-y),
+    transparent max(0px, calc(var(--ink-radius) - 100px)),
+    #000 var(--ink-radius));
   pointer-events: none;
-  z-index: -1;
 }
-.dl {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  mix-blend-mode: multiply;
-}
-.dl-dawn { background: linear-gradient(180deg, rgba(212, 165, 116, 0.38), rgba(212, 165, 116, 0) 70%); }
-.dl-dusk { background: linear-gradient(0deg, rgba(160, 58, 44, 0.3), rgba(160, 58, 44, 0) 75%); }
-.dl-sun {
-  position: absolute;
-  left: 50%;
-  top: -25vmax;
-  width: 80vmax;
-  height: 80vmax;
-  margin-left: -40vmax;
-  background: radial-gradient(circle, rgba(255, 247, 226, 0.9) 0%, rgba(255, 247, 226, 0) 62%);
-  opacity: 0;
-  will-change: transform, opacity;
-}
-
-/* ============ 墨暈標題 ============ */
-.ink-char {
-  display: inline-block;
-  animation: ink-in 800ms cubic-bezier(0.2, 0.7, 0.2, 1) 650ms backwards;
-}
-@keyframes ink-in {
-  from { opacity: 0; transform: translateY(10px); }
-}
+/* 標題立即清楚呈現，暈墨僅由游標停留觸發。 */
+.ink-char { display: inline-block; }
 
 /* ============ 線香煙霧 ============ */
 .incense-visual { position: relative; }
@@ -663,8 +551,8 @@ html[data-nav-in] .hero-title .ink-char { animation-delay: 350ms; }
   .fade-up { opacity: 1; transform: none; }
   /* 瀏覽器不會因 reduced-motion 暫停 WebP/GIF；手動換回靜態圖 */
   .partridge-deco { background-image: url('/assets/partridge_corner.webp'); }
-  /* 進場揭幕、光影色罩、煙霧畫布在減少動態時整個不出現 */
-  .intro, .daylight, .smoke-canvas, .nav-exit, .nav-cover { display: none; }
+  /* 減少動態時停用煙霧與換頁墨幕；首頁水墨另有靜態替代。 */
+  .smoke-canvas, .nav-ink { display: none; }
 }
 
 /* ============ LEGAL PAGES (privacy / terms) ============ */

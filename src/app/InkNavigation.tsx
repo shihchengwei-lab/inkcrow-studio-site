@@ -1,108 +1,153 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { usePathname, useRouter } from "next/navigation";
 
-/*
- * 換頁墨色轉場（離開頁這一半）
- * 點站內連結時，墨從點擊位置擴散蓋滿畫面，蓋完才換頁。
- * 新頁面那一半（墨從同一個位置退去）由 layout.tsx 的內嵌程式與 globals.css 的 .nav-cover 負責，
- * 兩邊靠 sessionStorage 的 "ink-nav" 交接點擊位置。
- */
-
-const EXIT_MS = 520;
-// 換頁一直沒發生時，多久後把墨幕移除，避免永遠蓋著
+const COVER_MS = 80;
+const REVEAL_MS = 250;
 const SAFETY_MS = 6000;
+const routePath = (path: string) => path.replace(/\/+$/, "") || "/";
+const SITE_ROUTES = new Set(["/", "/privacy", "/terms"]);
+type Passage = { path: string; cover: HTMLDivElement; radius: number; dispose: () => void };
 
 export default function InkNavigation() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const passage = useRef<Passage | null>(null);
+  const scrollTarget = useRef<string | null>(null);
+
+  // 路由提交並準備繪製後才揭幕；資料較慢時先保持紙幕。
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    let leaving = false;
-
-    const onClick = (e: MouseEvent) => {
-      if (leaving || e.defaultPrevented || e.button !== 0) return;
-      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-
-      const a = (e.target as Element | null)?.closest?.(
-        "a[href]"
-      ) as HTMLAnchorElement | null;
-      if (!a) return;
-      if ((a.target && a.target !== "_self") || a.hasAttribute("download")) {
-        return;
-      }
-      const url = new URL(a.href, location.href);
-      if (url.origin !== location.origin) return;
-      // 同一頁（例如 #work 錨點）不轉場
-      if (url.pathname === location.pathname && url.search === location.search) {
-        return;
-      }
-
-      e.preventDefault();
-      leaving = true;
-
-      // 用鍵盤按下連結時沒有游標位置，改從連結中心擴散
-      let x = e.clientX;
-      let y = e.clientY;
-      if (e.detail === 0) {
-        const r = a.getBoundingClientRect();
-        x = r.left + r.width / 2;
-        y = r.top + r.height / 2;
-      }
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      // 到最遠的畫面角落的距離，圓要長到這麼大才蓋得滿
-      const radius = Math.hypot(Math.max(x, w - x), Math.max(y, h - y)) + 8;
-
-      const cover = document.createElement("div");
-      cover.className = "nav-exit";
-      cover.setAttribute("aria-hidden", "true");
-      cover.style.clipPath = `circle(0px at ${x}px ${y}px)`;
-      document.body.appendChild(cover);
-
-      const go = () => {
-        try {
-          sessionStorage.setItem(
-            "ink-nav",
-            `${Math.round(x)},${Math.round(y)},${Date.now()}`
-          );
-        } catch {
-          /* 存不進去就算了，新頁面只是不播退墨 */
-        }
-        window.location.assign(url.href);
-      };
-
-      const anim = cover.animate(
-        [
-          { clipPath: `circle(0px at ${x}px ${y}px)` },
-          { clipPath: `circle(${radius}px at ${x}px ${y}px)` },
-        ],
-        {
-          duration: EXIT_MS,
-          easing: "cubic-bezier(0.6, 0, 0.3, 1)",
-          fill: "forwards",
-        }
-      );
-      anim.finished.then(go, go);
-
-      window.setTimeout(() => {
-        cover.remove();
-        leaving = false;
-      }, SAFETY_MS);
-    };
-
-    // 從瀏覽器的上一頁回來時，頁面可能是從快取還原的，要把殘留的墨幕拿掉
-    const onShow = (e: PageTransitionEvent) => {
-      if (!e.persisted) return;
-      document.querySelectorAll(".nav-exit").forEach((n) => n.remove());
-      leaving = false;
-    };
-
-    document.addEventListener("click", onClick);
-    window.addEventListener("pageshow", onShow);
+    if (scrollTarget.current === routePath(pathname)) {
+      if (!location.hash) window.scrollTo({ top: 0, behavior: "instant" });
+      scrollTarget.current = null;
+    }
+    const pending = passage.current;
+    if (!pending || pending.path !== routePath(pathname)) return;
+    let secondFrame = 0;
+    const firstFrame = requestAnimationFrame(() => {
+      secondFrame = requestAnimationFrame(() => {
+        if (passage.current !== pending) return;
+        pending.cover.dataset.phase = "reveal";
+        const animation = pending.cover.animate(
+          [{ "--ink-radius": "0px" }, { "--ink-radius": `${pending.radius}px` }],
+          { duration: REVEAL_MS, easing: "cubic-bezier(.22,.61,.36,1)", fill: "forwards" },
+        );
+        animation.finished.then(pending.dispose, pending.dispose);
+      });
+    });
     return () => {
-      document.removeEventListener("click", onClick);
-      window.removeEventListener("pageshow", onShow);
+      cancelAnimationFrame(firstFrame);
+      cancelAnimationFrame(secondFrame);
     };
-  }, []);
+  }, [pathname]);
+
+  useEffect(() => {
+    const destination = (target: EventTarget | null) => {
+      const anchor = target instanceof Element ? target.closest<HTMLAnchorElement>("a[href]") : null;
+      if (!anchor || (anchor.target && anchor.target !== "_self") || anchor.hasAttribute("download")) return null;
+      const url = new URL(anchor.href, location.href);
+      if (url.origin !== location.origin || !SITE_ROUTES.has(routePath(url.pathname))) return null;
+      if (routePath(url.pathname) === routePath(location.pathname)) return null;
+      return { url, anchor };
+    };
+    const warm = (url: URL) => {
+      const href = url.pathname + url.search;
+      router.prefetch(href);
+    };
+    const onIntent = (event: Event) => {
+      const target = destination(event.target);
+      if (target) warm(target.url);
+    };
+    const onClick = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const target = destination(event.target);
+      if (!target) return;
+      event.preventDefault();
+      if (passage.current) return;
+      const { url, anchor } = target;
+      warm(url);
+      const href = url.pathname + url.search + url.hash;
+      scrollTarget.current = routePath(url.pathname);
+      // 返回首頁直接承接已成形的淡墨，避免與換頁揭幕重疊。
+      if (routePath(url.pathname) === "/") {
+        document.documentElement.setAttribute("data-intro-seen", "");
+        try { sessionStorage.setItem("water-ink-seen", "1"); } catch { /* 不影響導覽 */ }
+      }
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        router.push(href);
+        return;
+      }
+      const rect = anchor.getBoundingClientRect();
+      const x = event.detail === 0 ? rect.left + rect.width / 2 : event.clientX;
+      const y = event.detail === 0 ? rect.top + rect.height / 2 : event.clientY;
+      const cover = document.createElement("div");
+      cover.className = "nav-ink";
+      cover.dataset.phase = "cover";
+      cover.setAttribute("aria-hidden", "true");
+      cover.style.setProperty("--ink-x", `${x}px`);
+      cover.style.setProperty("--ink-y", `${y}px`);
+      document.body.appendChild(cover);
+      const pending: Passage = {
+        path: routePath(url.pathname), cover,
+        radius: Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y)) + 100,
+        dispose: () => {
+          clearTimeout(safety);
+          cover.getAnimations().forEach((animation) => animation.cancel());
+          cover.remove();
+          if (passage.current === pending) passage.current = null;
+        },
+      };
+      passage.current = pending;
+      const safety = window.setTimeout(pending.dispose, SAFETY_MS);
+      const animation = cover.animate([{ opacity: 0 }, { opacity: 1 }], {
+        duration: COVER_MS, easing: "ease-out", fill: "forwards",
+      });
+      animation.finished.then(() => {
+        if (passage.current === pending) {
+          cover.dataset.phase = "waiting";
+          router.push(href);
+        }
+      }, () => {});
+    };
+    const cancel = () => {
+      scrollTarget.current = null;
+      passage.current?.dispose();
+    };
+    // 即時切換減少動態由 CSS 隱藏紙幕；導覽仍照常完成。
+
+    document.addEventListener("pointerover", onIntent);
+    document.addEventListener("focusin", onIntent);
+    document.addEventListener("touchstart", onIntent, { passive: true });
+    document.addEventListener("click", onClick);
+    window.addEventListener("popstate", cancel);
+
+    return () => {
+      cancel();
+      document.removeEventListener("pointerover", onIntent);
+      document.removeEventListener("focusin", onIntent);
+      document.removeEventListener("touchstart", onIntent);
+      document.removeEventListener("click", onClick);
+      window.removeEventListener("popstate", cancel);
+
+    };
+  }, [router]);
+
+  // 靠近視窗的站內連結先預載；點擊時仍補一次預載，與覆幕同步進行。
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        observer.unobserve(entry.target);
+        const anchor = entry.target as HTMLAnchorElement;
+        const url = new URL(anchor.href, location.href);
+        if (url.origin !== location.origin || !SITE_ROUTES.has(routePath(url.pathname)) || routePath(url.pathname) === routePath(pathname)) continue;
+        const href = url.pathname + url.search;
+        router.prefetch(href);
+      }
+    }, { rootMargin: "160px" });
+    document.querySelectorAll("a[href]:not([target]):not([download])").forEach((anchor) => observer.observe(anchor));
+    return () => observer.disconnect();
+  }, [pathname, router]);
 
   return null;
 }

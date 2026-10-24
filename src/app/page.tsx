@@ -1,16 +1,20 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Immersion from "./Immersion";
+import WaterInk from "./WaterInk";
+import StudioLogo from "./StudioLogo";
 
 export default function Home() {
   const [audioOn, setAudioOn] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const setScrollY = () => {
-      document.body.style.setProperty("--scroll-y", `${window.scrollY}px`);
+      document.body.style.setProperty("--scroll-y", `${motion.matches ? 0 : window.scrollY}px`);
     };
     window.addEventListener("scroll", setScrollY, { passive: true });
+    motion.addEventListener("change", setScrollY);
     setScrollY();
 
     const items = document.querySelectorAll<HTMLElement>(".fade-up");
@@ -34,6 +38,8 @@ export default function Home() {
 
     return () => {
       window.removeEventListener("scroll", setScrollY);
+      motion.removeEventListener("change", setScrollY);
+      document.body.style.removeProperty("--scroll-y");
       observer?.disconnect();
     };
   }, []);
@@ -134,19 +140,8 @@ export default function Home() {
   };
 
   return (
-    <>
-      {/* 進場墨滴揭幕：純 CSS 動畫，約 1.7 秒後自己消失，不擋操作；同一個瀏覽分頁只播一次（見 layout.tsx） */}
-      <div className="intro" aria-hidden="true">
-        <div className="intro-layer intro-ink" />
-        <div className="intro-layer intro-paper" />
-        <div className="intro-drop" />
-      </div>
-      {/* 一天的光線：三層半透明色罩，顏色取自既有的琥珀與朱紅，由 Immersion 依捲動調整 */}
-      <div className="daylight" aria-hidden="true">
-        <div className="dl dl-dawn" />
-        <div className="dl dl-dusk" />
-        <div className="dl-sun" />
-      </div>
+    <div className="home-page">
+      <WaterInk />
       {/* 墨暈標題用的濾鏡：每個字一組，才能各自暈開 */}
       <svg
         width="0"
@@ -192,12 +187,7 @@ export default function Home() {
           </a>
         </div>
         <div className="hero-visual">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/assets/logo-mark.webp"
-            alt="墨鴉工作室 標記"
-            style={{ width: "100%", height: "100%", objectFit: "contain" }}
-          />
+          <StudioLogo />
         </div>
       </section>
 
@@ -387,6 +377,6 @@ export default function Home() {
           </div>
         </div>
       </footer>
-    </>
+    </div>
   );
 }

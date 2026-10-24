@@ -22,13 +22,10 @@ export default function RootLayout({
   return (
     <html lang="zh-Hant" suppressHydrationWarning>
       <head>
-        {/* 在畫面繪製前先判斷兩件事，結果寫成 <html> 的標記，由 CSS 與 Immersion 讀取：
-            1. data-nav-in：這次是從站內連結的墨色轉場過來的（InkNavigation 留下點擊位置），
-               新頁面要播「墨從該位置退去」，位置存成 --cx、--cy。
-            2. data-intro-seen：首頁進場揭幕每個瀏覽分頁只播一次；從轉場進首頁也算看過。條款頁不算播過。 */}
+        {/* 繪製前讀取分頁記錄，避免首次淡墨與 Logo 成形前閃出完整圖形。 */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var d=document.documentElement,n=sessionStorage.getItem("ink-nav");if(n){sessionStorage.removeItem("ink-nav");var p=n.split(",");if(Date.now()-Number(p[2])<5000){d.setAttribute("data-nav-in","");d.style.setProperty("--cx",p[0]+"px");d.style.setProperty("--cy",p[1]+"px")}}if(location.pathname!=="/")return;if(d.hasAttribute("data-nav-in")||sessionStorage.getItem("intro-seen"))d.setAttribute("data-intro-seen","");sessionStorage.setItem("intro-seen","1")}catch(e){}})()`,
+            __html: `(function(){try{if(location.pathname!=="/")return;var d=document.documentElement;if(sessionStorage.getItem("water-ink-seen"))d.setAttribute("data-intro-seen","");sessionStorage.setItem("water-ink-seen","1");if(!sessionStorage.getItem("inkcrow-logo-seen"))d.setAttribute("data-logo-intro","")}catch(e){}})()`,
           }}
         />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -45,8 +42,6 @@ export default function RootLayout({
       <body>
         {children}
         <InkNavigation />
-        {/* 換頁後墨退去的墨幕，平常隱藏，只有 data-nav-in 時顯示（見 globals.css） */}
-        <div className="nav-cover" aria-hidden="true" />
       </body>
     </html>
   );
