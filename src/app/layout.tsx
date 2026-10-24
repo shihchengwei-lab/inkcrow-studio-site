@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import InkNavigation from "./InkNavigation";
+import WishPresence from "./WishPresence";
 
 export const metadata: Metadata = {
   title: "墨鴉工作室 — 願行 Pilgrimage on Foot",
@@ -42,6 +43,7 @@ export default function RootLayout({
       <body>
         {children}
         <InkNavigation />
+        <WishPresence />
       </body>
     </html>
   );

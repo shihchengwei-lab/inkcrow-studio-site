@@ -1,0 +1,16 @@
+.character-reveal { position: relative; width: 100%; height: 100%; }
+.character-reveal img { display: block; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.character-reveal-street { --head-x: 72%; --head-y: 24.5%; --head-rx: 7.2%; --head-ry: 13.8%; }
+.character-reveal-field { --head-x: 56.5%; --head-y: 27.1%; --head-rx: 8.2%; --head-ry: 11%; }
+.character-surroundings {
+  mask-image: radial-gradient(ellipse var(--head-rx) var(--head-ry) at var(--head-x) var(--head-y), transparent 80%, #000 100%);
+}
+.character-turned {
+  mask-image: radial-gradient(ellipse var(--head-rx) var(--head-ry) at var(--head-x) var(--head-y), #000 80%, transparent 100%);
+  opacity: 0;
+  transition: opacity 650ms ease;
+}
+.character-reveal[data-turned="true"] .character-turned { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .character-turned { transition: none; }
+}

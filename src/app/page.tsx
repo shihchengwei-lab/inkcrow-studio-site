@@ -5,6 +5,7 @@ import WaterInk from "./WaterInk";
 import StudioLogo from "./StudioLogo";
 import ButterflyArtwork from "./ButterflyArtwork";
 import PartridgeArtwork from "./PartridgeArtwork";
+import CharacterReveal from "./CharacterReveal";
 
 export default function Home() {
   const [audioOn, setAudioOn] = useState(false);
@@ -243,12 +244,7 @@ export default function Home() {
         </div>
 
         <div className="work-hero-image fade-up">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/assets/work_hero.webp"
-            alt="願行 — 神明陪你日常行走"
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-          />
+          <CharacterReveal scene="street" />
         </div>
 
         <div className="work-cols">
@@ -270,12 +266,7 @@ export default function Home() {
           </div>
           <div className="work-col fade-up">
             <div className="work-col-visual">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/assets/col_2_companion.webp"
-                alt="神明同行 — 歸安陪女玩家走田野"
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
+              <CharacterReveal scene="field" />
             </div>
             <div className="work-col-en">companions</div>
             <h3>神明同行</h3>

@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 import ts from "typescript";
 import { InkFlow } from "../src/app/water-ink.ts";
+import * as wishProgress from "../src/app/wish-progress.ts";
 
 // 執行實際元件 effect 與物理場，只替換 DOM、時鐘與 GPU 邊界。
 const source = readFileSync(new URL("../src/app/WaterInk.tsx", import.meta.url), "utf8");
@@ -37,7 +38,7 @@ function mount() {
       : name === "./water-ink" ? {
         InkFlow, FORM_SECONDS: 5, INK_COLOR: [0, 0, 0], INK_HOMES: [],
         createInkRenderer: () => ({ draw() { draws++; return true; }, dispose() { disposals++; } }),
-      } : {},
+      } : name === "./wish-progress" ? wishProgress : {},
   };
   runInNewContext(code, sandbox);
   sandbox.exports.default();

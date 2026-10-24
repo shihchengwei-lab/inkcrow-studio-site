@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { createInkRenderer, FORM_SECONDS, INK_COLOR, INK_HOMES, InkFlow } from "./water-ink";
+import { getWishEffects, subscribeWishProgress } from "./wish-progress";
 import "./water-ink.css";
 
 // 觀看記錄只由實際掛載的首頁水墨消耗；儲存不可用時仍維持本頁文件內只播一次。
@@ -85,7 +86,8 @@ export default function WaterInk() {
         const maxScroll = Math.max(1, page.scrollHeight - window.innerHeight);
         const age = Math.min(1, Math.max(0, window.scrollY / maxScroll));
         scene.style.setProperty("--paper-age", String(age * age * (3 - 2 * age)));
-        if (!renderer.draw(field, window.innerHeight, window.scrollY, intro, scale)) {
+        const wish = getWishEffects();
+        if (!renderer.draw(field, window.innerHeight, window.scrollY, intro, scale, wish.inkGain, wish.inkSpread)) {
           fallBack();
           return;
         }
@@ -175,6 +177,7 @@ export default function WaterInk() {
         fallBack();
       };
       const observer = new ResizeObserver(resize);
+      const unsubscribeWish = subscribeWishProgress(wake);
       observer.observe(page);
       window.addEventListener("scroll", wake, { passive: true });
       window.addEventListener("resize", resize);
@@ -193,6 +196,7 @@ export default function WaterInk() {
         stopped = true;
         cancelAnimationFrame(raf);
         observer.disconnect();
+        unsubscribeWish();
         window.removeEventListener("scroll", wake);
         window.removeEventListener("resize", resize);
         window.removeEventListener("pointermove", pointerMove);
@@ -237,9 +241,9 @@ export default function WaterInk() {
               </filter>
             </defs>
             <g fill={color} filter={`url(#still-ink-${i})`}>
-              <ellipse rx="61" ry="28" opacity="0.055" transform="rotate(-24)" />
-              <ellipse cx="16" cy="5" rx="41" ry="35" opacity="0.045" transform="rotate(22)" />
-              <ellipse cx="-8" cy="-13" rx="48" ry="12" opacity="0.05" transform="rotate(-38)" />
+              <ellipse rx="61" ry="28" style={{ opacity: "calc(0.055 * var(--wish-ink-gain, 1))" }} transform="rotate(-24)" />
+              <ellipse cx="16" cy="5" rx="41" ry="35" style={{ opacity: "calc(0.045 * var(--wish-ink-gain, 1))" }} transform="rotate(22)" />
+              <ellipse cx="-8" cy="-13" rx="48" ry="12" style={{ opacity: "calc(0.05 * var(--wish-ink-gain, 1))" }} transform="rotate(-38)" />
             </g>
           </svg>
         ))}

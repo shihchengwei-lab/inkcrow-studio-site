@@ -10,7 +10,7 @@
   cursor: pointer;
 }
 .studio-logo:focus-visible { outline: 2px solid var(--accent-vermillion); outline-offset: 4px; }
-.logo-source, .logo-formation, .logo-bleed {
+.logo-source, .logo-formation, .logo-bleed, .logo-wish-aura {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -19,6 +19,8 @@
   pointer-events: none;
 }
 .logo-formation { opacity: 0; }
+.logo-wish-aura { opacity: 0; }
+.studio-logo[data-phase="still"] .logo-wish-aura { opacity: var(--wish-logo-opacity, 0); }
 html[data-logo-intro] .studio-logo[data-phase="waiting"] .logo-source,
 .studio-logo[data-phase="forming"] .logo-source,
 .studio-logo[data-phase="replaying"] .logo-source { opacity: 0; }

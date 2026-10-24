@@ -11,7 +11,11 @@
 | `/terms/` | 願行服務條款 |
 | `/.well-known/security.txt` | 安全研究員聯絡方式（RFC 9116） |
 
-首頁水墨在 `src/app/WaterInk.tsx`、`water-ink.ts` 與 `water-ink.css`，標題互動在 `Immersion.tsx`，線香煙霧在 `smoke.ts`，蝴蝶在 `butterfly.ts` 與 `ButterflyArtwork.tsx`，竹雞在 `partridge.ts` 與 `PartridgeArtwork.tsx`。同一分頁第一次實際進首頁時淡墨約 5 秒成形，即使先開條款頁也會播放；之後重新整理或返回首頁不重播。觀看記錄由水墨元件統一管理，內容立即可讀。水墨歸攏後停止繪製，手機手勢同時正常捲頁與擾墨。
+首頁水墨在 `src/app/WaterInk.tsx`、`water-ink.ts` 與 `water-ink.css`，標題互動在 `Immersion.tsx`，線香煙霧在 `smoke.ts`，蝴蝶在 `butterfly.ts` 與 `ButterflyArtwork.tsx`，竹雞在 `partridge.ts` 與 `PartridgeArtwork.tsx`。同一分頁第一次實際進首頁時淡墨約 5 秒成形，即使先開條款頁也會播放；之後重新整理或返回首頁不重播。觀看記錄由水墨元件統一管理，內容立即可讀。水墨歸攏後停止逐幀繪製，手機手勢同時正常捲頁與擾墨。
+
+願力隨同一分頁的可見停留時間累積：前 30 秒維持基底，之後水墨從兩側滲向中央、煙絲逐漸溢出圖面上緣，Logo 墨環外沿浮出淡墨暈，3 分鐘封頂。切換分頁暫停；進出條款頁與重新整理保留進度，可見的條款閱讀時間也計入。由共用版面的 `WishPresence.tsx` 與 `wish-progress.ts` 統一計時；水墨安定時只隨每秒願力變化重畫一次，封頂後停止這項更新。
+
+兩張人物圖起初都讓神明背對：老街大圖在可見停留滿 2 分鐘後回頭；田野同行圖在抵達頁底再往上捲時回頭。玩家與場景保持原樣，觸發後同分頁保留結果，減少動態時直接切換。詳見[彩蛋規格與圖像來源](docs/character-easter-eggs.md)。
 
 線香持續冒出柔邊煙絲，游標或手指劃過會撥開煙流、帶出短暫旋渦，停手後逐漸恢復煙柱。觸控保持正常捲頁；煙霧離開畫面或分頁隱藏時停止繪製，減少動態時保留原始插畫。
 

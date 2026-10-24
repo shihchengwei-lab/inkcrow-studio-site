@@ -1,3 +1,5 @@
+import { getWishEffects } from "./wish-progress";
+
 // 沿用原圖的三個香頭與煙色；煙絲受短暫氣流帶動，香頭持續補出新煙。
 const TIPS = [
   { x: 0.456, y: 0.369 },
@@ -6,8 +8,10 @@ const TIPS = [
 ];
 const COLOR = "238, 232, 222";
 const LIFE = 3.8;
+const FULL_LIFE = 8.2;
+const TOP_SPACE = 0.28;
 const EMIT_INTERVAL = 0.035;
-const MAX_POINTS = 112;
+const MAX_POINTS = Math.ceil(FULL_LIFE / EMIT_INTERVAL) + 2;
 const MAX_GUSTS = 32;
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 type Point = { x: number; y: number; vx: number; vy: number; age: number };
@@ -35,11 +39,14 @@ export function setupSmoke(): () => void {
   const resize = () => {
     const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     size = Math.max(1, Math.round(host.getBoundingClientRect().width * dpr));
-    canvas.width = canvas.height = size;
+    canvas.width = size;
+    canvas.height = Math.ceil(size * (1 + TOP_SPACE));
+    canvas.style.height = `${(1 + TOP_SPACE) * 100}%`;
     raw = anchor = null;
   };
 
   const step = (dt: number) => {
+    const life = LIFE + (FULL_LIFE - LIFE) * getWishEffects().strength;
     time += dt;
     for (let i = gusts.length - 1; i >= 0; i--) {
       const g = gusts[i];
@@ -61,11 +68,11 @@ export function setupSmoke(): () => void {
       for (let i = points.length - 1; i >= 0; i--) {
         const p = points[i];
         p.age += dt;
-        if (p.age > LIFE || p.y < -0.06) { points.splice(i, 1); continue; }
+        if (p.age > life || p.y < -TOP_SPACE) { points.splice(i, 1); continue; }
         // 同一空間共享緩慢氣流，避免每顆粒子各自抖動而散成光點。
         let vx = 0.018 * Math.sin(p.y * 24 + time * 1.1 + index * 0.8)
           + 0.011 * Math.sin(p.y * 49 - time * 0.7);
-        let vy = -0.078 - 0.018 * p.age / LIFE;
+        let vy = -0.078 - 0.018 * p.age / life;
         for (const g of gusts) {
           const speed = Math.hypot(g.vx, g.vy);
           const fade = Math.exp(-g.age * 1.8) * g.weight;
@@ -96,7 +103,12 @@ export function setupSmoke(): () => void {
   };
 
   const draw = () => {
-    ctx.clearRect(0, 0, size, size);
+    const wish = getWishEffects();
+    const life = LIFE + (FULL_LIFE - LIFE) * wish.strength;
+    const offset = canvas.height - size;
+    ctx.clearRect(0, 0, size, canvas.height);
+    // 出圖範圍隨願力向上開展，柔邊遮罩也涵蓋煙絲線寬，避免越界硬切。
+    const top = -TOP_SPACE * wish.strength;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     // 三層柔邊煙絲，寬度隨上升擴散；斷開拉得太遠的片段，不畫橡皮筋。
@@ -105,22 +117,29 @@ export function setupSmoke(): () => void {
         const a = points[i - 1], b = points[i], c = points[i + 1];
         const spacing = Math.max(Math.hypot(a.x - b.x, a.y - b.y), Math.hypot(c.x - b.x, c.y - b.y));
         if (spacing > 0.045) continue;
-        const t = b.age / LIFE;
+        const t = b.age / life;
         // 拉長時煙會變稀，不把同樣濃度延展成一條白繩。
         const density = Math.min(1, 0.0035 / Math.max(0.001, spacing));
         const alpha = Math.min(1, b.age / 0.16) * Math.pow(1 - t, 1.25) * density;
-        const width = (0.0025 + t * 0.019) * size;
+        const width = (0.0025 + t * 0.019) * size * wish.smokeWidth;
         for (const [scale, opacity] of [[3.2, 0.065], [1.7, 0.11], [0.85, 0.12]]) {
-          ctx.strokeStyle = `rgba(${COLOR}, ${alpha * opacity})`;
+          ctx.strokeStyle = `rgba(${COLOR}, ${alpha * opacity * wish.smokeGain})`;
           ctx.lineWidth = Math.max(0.5, width * scale);
           ctx.beginPath();
-          ctx.moveTo((a.x + b.x) * size / 2, (a.y + b.y) * size / 2);
-          ctx.quadraticCurveTo(b.x * size, b.y * size,
-            (b.x + c.x) * size / 2, (b.y + c.y) * size / 2);
+          ctx.moveTo((a.x + b.x) * size / 2, (a.y + b.y) * size / 2 + offset);
+          ctx.quadraticCurveTo(b.x * size, b.y * size + offset,
+            (b.x + c.x) * size / 2, (b.y + c.y) * size / 2 + offset);
           ctx.stroke();
         }
       }
     }
+    const fade = ctx.createLinearGradient(0, top * size + offset, 0, (top + 0.06) * size + offset);
+    fade.addColorStop(0, "rgba(0,0,0,0)");
+    fade.addColorStop(1, "rgba(0,0,0,1)");
+    ctx.globalCompositeOperation = "destination-in";
+    ctx.fillStyle = fade;
+    ctx.fillRect(0, 0, size, canvas.height);
+    ctx.globalCompositeOperation = "source-over";
   };
 
   const frame = (now: number) => {
@@ -163,7 +182,7 @@ export function setupSmoke(): () => void {
       const t = (i + 0.5) / count;
       const x = (old.x - rect.left) / rect.width + dx * t;
       const y = (old.y - rect.top) / rect.height + dy * t;
-      if (x < 0 || x > 1 || y < 0 || y > 0.48) continue;
+      if (x < 0 || x > 1 || y < -TOP_SPACE * getWishEffects().strength || y > 0.48) continue;
       gusts.push({ x, y, vx: dx / distance * speed, vy: dy / distance * speed,
         age: 0, weight: Math.min(1, distance / (count * 0.035)) });
     }
@@ -195,29 +214,29 @@ export function setupSmoke(): () => void {
   });
   const ro = new ResizeObserver(resize);
   resize();
-  io.observe(host);
+  io.observe(canvas);
   ro.observe(host);
-  host.addEventListener("pointermove", pointerMove, { passive: true });
+  window.addEventListener("pointermove", pointerMove, { passive: true });
   host.addEventListener("pointerleave", resetInput);
   host.addEventListener("pointercancel", resetInput);
   // 瀏覽器開始捲頁後可能取消 pointer；被動 touchmove 仍可跟隨，不阻止原生手勢。
-  host.addEventListener("touchstart", touchStart, { passive: true });
-  host.addEventListener("touchmove", touchMove, { passive: true });
-  host.addEventListener("touchend", touchEnd, { passive: true });
-  host.addEventListener("touchcancel", touchEnd, { passive: true });
+  window.addEventListener("touchstart", touchStart, { passive: true });
+  window.addEventListener("touchmove", touchMove, { passive: true });
+  window.addEventListener("touchend", touchEnd, { passive: true });
+  window.addEventListener("touchcancel", touchEnd, { passive: true });
   document.addEventListener("visibilitychange", visibility);
   return () => {
-    host.removeEventListener("pointermove", pointerMove);
+    window.removeEventListener("pointermove", pointerMove);
     host.removeEventListener("pointerleave", resetInput);
     host.removeEventListener("pointercancel", resetInput);
-    host.removeEventListener("touchstart", touchStart);
-    host.removeEventListener("touchmove", touchMove);
-    host.removeEventListener("touchend", touchEnd);
-    host.removeEventListener("touchcancel", touchEnd);
+    window.removeEventListener("touchstart", touchStart);
+    window.removeEventListener("touchmove", touchMove);
+    window.removeEventListener("touchend", touchEnd);
+    window.removeEventListener("touchcancel", touchEnd);
     document.removeEventListener("visibilitychange", visibility);
     io.disconnect();
     ro.disconnect();
     cancelAnimationFrame(raf);
-    ctx.clearRect(0, 0, size, size);
+    ctx.clearRect(0, 0, size, canvas.height);
   };
 }

@@ -132,6 +132,8 @@ uniform vec2 viewport;
 uniform float pageHeight;
 uniform float scrollY;
 uniform float forming;
+uniform float inkGain;
+uniform float inkSpread;
 uniform vec4 homes[${INK_HOMES.length}];
 uniform vec3 inkColor;
 
@@ -168,7 +170,8 @@ void main() {
   for (int i = 0; i < ${INK_HOMES.length}; i++) {
     vec4 h = homes[i];
     vec2 center = vec2(h.x, h.y * pageHeight / viewport.x);
-    vec2 d = (q - center) / (h.zw * (1.0 + forming * 0.5));
+    // 墨團留在兩側，水平方向逐漸滲進中央；紋理與手勢位移仍在文件座標。
+    vec2 d = (q - center) / (h.zw * vec2(inkSpread, 1.0) * (1.0 + forming * 0.5));
     envelope += exp(-dot(d,d) * 2.2);
   }
   float cloud = fbm(q * 8.5 + warp * 3.8);
@@ -178,7 +181,7 @@ void main() {
   float density = envelope * (body * 0.14 + filaments * 0.055);
   // 中間的閱讀區更透，兩側與留白保留細絲、深淺層次。
   float reading = 0.62 + 0.38 * smoothstep(0.18, 0.49, abs(doc.x - 0.5));
-  gl_FragColor = vec4(inkColor, clamp(density * reading, 0.0, 0.19));
+  gl_FragColor = vec4(inkColor, clamp(density * reading, 0.0, 0.19) * inkGain);
 }
 `;
 
@@ -231,14 +234,14 @@ export function createInkRenderer(canvas: HTMLCanvasElement) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     const uniforms = Object.fromEntries(
-      ["viewport", "pageHeight", "scrollY", "forming", "homes", "inkColor"].map(
+      ["viewport", "pageHeight", "scrollY", "forming", "inkGain", "inkSpread", "homes", "inkColor"].map(
         (name) => [name, gl.getUniformLocation(program!, name)],
       ),
     );
     gl.uniform4fv(uniforms.homes, new Float32Array(INK_HOMES.flat()));
     gl.uniform3fv(uniforms.inkColor, INK_COLOR);
     return {
-      draw(field: InkFlow, height: number, scroll: number, forming: number, scale: number) {
+      draw(field: InkFlow, height: number, scroll: number, forming: number, scale: number, inkGain = 1, inkSpread = 1) {
         const w = Math.max(1, Math.round(field.width * scale));
         const h = Math.max(1, Math.round(height * scale));
         if (canvas.width !== w || canvas.height !== h) {
@@ -251,6 +254,8 @@ export function createInkRenderer(canvas: HTMLCanvasElement) {
         gl.uniform1f(uniforms.pageHeight, field.height);
         gl.uniform1f(uniforms.scrollY, scroll);
         gl.uniform1f(uniforms.forming, forming);
+        gl.uniform1f(uniforms.inkGain, inkGain);
+        gl.uniform1f(uniforms.inkSpread, inkSpread);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
         return !gl.isContextLost() && gl.getError() === gl.NO_ERROR;
       },

@@ -235,9 +235,15 @@ export default function StudioLogo() {
             <feDisplacementMap in="SourceGraphic" in2="grain" scale="5" xChannelSelector="R" yChannelSelector="G" />
             <feGaussianBlur stdDeviation="1.5" />
           </filter>
+          <filter id="logo-wish-feather" x="-10%" y="-10%" width="120%" height="120%">
+            <feGaussianBlur stdDeviation="8" />
+          </filter>
         </defs>
         <image className="logo-intro-image" href={SOURCE} width="1280" height="1280" mask="url(#logo-reveal)" />
         <image className="logo-replay-image" href={SOURCE} width="1280" height="1280" mask="url(#logo-replay)" />
+      </svg>
+      <svg className="logo-wish-aura" viewBox="0 0 1280 1280" aria-hidden="true">
+        <image href={SOURCE} width="1280" height="1280" mask="url(#logo-replay-region)" filter="url(#logo-wish-feather)" />
       </svg>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img className="logo-bleed" src={SOURCE} alt="" aria-hidden="true" width="1280" height="1280" />
