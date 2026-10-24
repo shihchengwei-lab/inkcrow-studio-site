@@ -379,6 +379,32 @@ body::before {
   color: var(--fg-soft);
 }
 
+/* 與書庫共用的小型落款。 */
+.studio-signature {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.studio-seal {
+  display: block;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  background: #c83a2a;
+  border-radius: 3px;
+  mask: linear-gradient(#000 0 0), url("/assets/studio-colophon.png") center / 88% no-repeat;
+  mask-composite: exclude;
+  opacity: 0;
+}
+
+.studio-seal[data-stamp-state="stamped"] { opacity: 1; }
+
+.footer a:focus-visible {
+  outline: 2px solid var(--accent-amber);
+  outline-offset: 4px;
+}
+
 /* ============ FADE-UP ============ */
 .fade-up {
   opacity: 0;

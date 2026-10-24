@@ -6,6 +6,7 @@ import StudioLogo from "./StudioLogo";
 import ButterflyArtwork from "./ButterflyArtwork";
 import PartridgeArtwork from "./PartridgeArtwork";
 import CharacterReveal from "./CharacterReveal";
+import StampedColophon from "./StampedColophon";
 
 export default function Home() {
   const [audioOn, setAudioOn] = useState(false);
@@ -355,11 +356,19 @@ export default function Home() {
                 <li>
                   <a href="#work">願行</a>
                 </li>
+                <li>
+                  <a href="https://ebook-one-rho.vercel.app/">
+                    書庫 <span aria-hidden="true">↗</span>
+                  </a>
+                </li>
               </ul>
             </div>
           </div>
           <div className="footer-bottom">
-            <div>&copy; 2026 INKCROW STUDIO</div>
+            <div className="studio-signature">
+              <StampedColophon />
+              <span>&copy; 2026 INKCROW STUDIO</span>
+            </div>
             <div>Taipei, Taiwan</div>
           </div>
         </div>
