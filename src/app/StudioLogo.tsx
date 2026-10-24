@@ -26,7 +26,7 @@ export default function StudioLogo() {
   const ringRef = useRef<SVGCircleElement>(null);
   const dotsRef = useRef<SVGGElement>(null);
   const introWanted = useRef<boolean | null>(null);
-  const introStart = useRef<number | null>(null);
+  const playback = useRef<{ kind: "forming" | "replaying"; elapsed: number } | null>(null);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -49,6 +49,7 @@ export default function StudioLogo() {
     let targetX = 0;
     let targetY = 0;
     let previous = 0;
+    let lastPlayback = 0;
 
     if (introWanted.current === null) {
       try { introWanted.current = !sessionStorage.getItem("inkcrow-logo-seen"); }
@@ -57,6 +58,7 @@ export default function StudioLogo() {
     const finish = () => {
       cancelAnimationFrame(introFrame);
       introFrame = 0;
+      playback.current = null;
       introWanted.current = false;
       host.dataset.phase = "still";
       root.removeAttribute("data-logo-intro");
@@ -69,17 +71,27 @@ export default function StudioLogo() {
       });
     };
     const form = (now: number) => {
-      const elapsed = now - introStart.current!;
-      rise.setAttribute("y", String(1030 - 1000 * ease(elapsed / CORE_MS)));
-      paintOrbit(elapsed - ORBIT_START_MS);
-      if (elapsed >= INTRO_MS) finish();
+      introFrame = 0;
+      const active = playback.current;
+      if (!active || !visible || document.hidden || disposed) return;
+      active.elapsed += now - lastPlayback;
+      lastPlayback = now;
+      if (active.kind === "forming") {
+        rise.setAttribute("y", String(1030 - 1000 * ease(active.elapsed / CORE_MS)));
+      }
+      paintOrbit(active.elapsed - (active.kind === "forming" ? ORBIT_START_MS : 0));
+      if (active.elapsed >= (active.kind === "forming" ? INTRO_MS : REPLAY_MS)) finish();
       else introFrame = requestAnimationFrame(form);
     };
     const start = () => {
-      if (disposed || !introWanted.current || motion.matches || !decoded || !visible || introFrame) return;
-      introStart.current ??= performance.now();
-      try { sessionStorage.setItem("inkcrow-logo-seen", "1"); } catch { /* 記錄失敗不影響圖形 */ }
-      host.dataset.phase = "forming";
+      if (disposed || motion.matches || !decoded || !visible || document.hidden || introFrame) return;
+      if (!playback.current) {
+        if (!introWanted.current) return;
+        playback.current = { kind: "forming", elapsed: 0 };
+        try { sessionStorage.setItem("inkcrow-logo-seen", "1"); } catch { /* 記錄失敗不影響圖形 */ }
+      }
+      host.dataset.phase = playback.current.kind;
+      lastPlayback = performance.now();
       introFrame = requestAnimationFrame(form);
     };
 
@@ -109,7 +121,7 @@ export default function StudioLogo() {
       if (!hoverFrame) { previous = performance.now(); hoverFrame = requestAnimationFrame(hover); }
     };
     const move = (event: PointerEvent) => {
-      if (event.pointerType === "touch" || motion.matches || host.dataset.phase !== "still") return;
+      if (event.pointerType === "touch" || motion.matches || !visible || document.hidden || host.dataset.phase !== "still") return;
       const bounds = host.getBoundingClientRect();
       targetX = event.clientX - bounds.left;
       targetY = event.clientY - bounds.top;
@@ -126,22 +138,24 @@ export default function StudioLogo() {
       finish();
       resetHover();
       paintOrbit(0);
+      playback.current = { kind: "replaying", elapsed: 0 };
       host.dataset.phase = "replaying";
-      const began = performance.now();
-      const frame = (now: number) => {
-        const elapsed = now - began;
-        paintOrbit(elapsed);
-        if (elapsed >= REPLAY_MS) finish();
-        else introFrame = requestAnimationFrame(frame);
-      };
-      introFrame = requestAnimationFrame(frame);
+      start();
+    };
+    const syncVisibility = () => {
+      if (visible && !document.hidden) start();
+      else {
+        cancelAnimationFrame(introFrame);
+        introFrame = 0;
+        resetHover();
+      }
     };
 
     if (motion.matches || !introWanted.current) finish();
     else root.setAttribute("data-logo-intro", "");
     const observer = new IntersectionObserver((entries) => {
-      visible = entries.some((entry) => entry.isIntersecting);
-      if (visible) start();
+      visible = entries.some((entry) => entry.isIntersecting && entry.intersectionRatio >= 0.2);
+      syncVisibility();
     }, { threshold: 0.2 });
     observer.observe(host);
     image.decode().then(() => { decoded = true; start(); }, () => { if (!disposed) finish(); });
@@ -151,6 +165,7 @@ export default function StudioLogo() {
     host.addEventListener("click", replay);
     motion.addEventListener("change", onMotion);
     window.addEventListener("resize", resetHover);
+    document.addEventListener("visibilitychange", syncVisibility);
     return () => {
       disposed = true;
       observer.disconnect();
@@ -163,6 +178,7 @@ export default function StudioLogo() {
       host.removeEventListener("click", replay);
       motion.removeEventListener("change", onMotion);
       window.removeEventListener("resize", resetHover);
+      document.removeEventListener("visibilitychange", syncVisibility);
     };
   }, []);
 

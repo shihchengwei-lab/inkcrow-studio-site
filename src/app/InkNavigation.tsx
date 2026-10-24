@@ -68,11 +68,6 @@ export default function InkNavigation() {
       warm(url);
       const href = url.pathname + url.search + url.hash;
       scrollTarget.current = routePath(url.pathname);
-      // 返回首頁直接承接已成形的淡墨，避免與換頁揭幕重疊。
-      if (routePath(url.pathname) === "/") {
-        document.documentElement.setAttribute("data-intro-seen", "");
-        try { sessionStorage.setItem("water-ink-seen", "1"); } catch { /* 不影響導覽 */ }
-      }
       if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
         router.push(href);
         return;

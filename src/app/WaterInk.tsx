@@ -4,6 +4,18 @@ import { useEffect, useRef } from "react";
 import { createInkRenderer, FORM_SECONDS, INK_COLOR, INK_HOMES, InkFlow } from "./water-ink";
 import "./water-ink.css";
 
+// 觀看記錄只由實際掛載的首頁水墨消耗；儲存不可用時仍維持本頁文件內只播一次。
+let visitClaimed = false;
+function claimFirstVisit() {
+  if (visitClaimed) return false;
+  visitClaimed = true;
+  try {
+    const seen = sessionStorage.getItem("water-ink-seen") === "1";
+    sessionStorage.setItem("water-ink-seen", "1");
+    return !seen;
+  } catch { return true; }
+}
+
 export default function WaterInk() {
   const sceneRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -21,9 +33,8 @@ export default function WaterInk() {
       cleanup();
       scene.dataset.mode = "static";
       if (firstStart.current === null) {
-        firstStart.current = motion.matches || document.documentElement.hasAttribute("data-intro-seen")
-          ? -1 : performance.now();
-        document.documentElement.setAttribute("data-intro-seen", "");
+        const firstVisit = claimFirstVisit();
+        firstStart.current = !motion.matches && firstVisit ? performance.now() : -1;
       }
       if (motion.matches) return;
       const renderer = createInkRenderer(canvas);
@@ -31,7 +42,7 @@ export default function WaterInk() {
 
       let stopped = false;
       let raf = 0;
-      let lastFrame = 0;
+      let lastFrame: number | null = null;
       let animationSeconds = 0;
       let slowFrames = 0;
       let sampledFrames = 0;
@@ -56,9 +67,10 @@ export default function WaterInk() {
       const frame = (now: number) => {
         raf = 0;
         if (stopped || document.hidden) return;
-        const elapsed = lastFrame ? now - lastFrame : 33.3;
+        const continuing = lastFrame !== null;
+        const elapsed = lastFrame === null ? 33.3 : now - lastFrame;
         // 最高每秒 30 次，紙墨安定後不再常駐繪製。
-        if (lastFrame && elapsed < 30) {
+        if (continuing && elapsed < 30) {
           raf = requestAnimationFrame(frame);
           return;
         }
@@ -81,7 +93,7 @@ export default function WaterInk() {
         scene.dataset.phase = forming ? "forming" : flowing ? "flowing" : "still";
 
         // 只觀察可見分頁中連續活動的畫面；載入與休眠後第一幀不計。
-        if ((forming || flowing) && animationSeconds > 1.5 && elapsed < 250) {
+        if (continuing && (forming || flowing) && animationSeconds > 1.5) {
           sampledFrames++;
           if (elapsed > 55) slowFrames++;
           if (sampledFrames >= 75) {
@@ -103,7 +115,7 @@ export default function WaterInk() {
 
       const wake = () => {
         if (stopped || document.hidden || raf) return;
-        lastFrame = 0;
+        lastFrame = null;
         raf = requestAnimationFrame(frame);
       };
       const move = (x: number, y: number, id: number) => {
@@ -152,7 +164,7 @@ export default function WaterInk() {
         if (document.hidden) {
           cancelAnimationFrame(raf);
           raf = 0;
-          lastFrame = 0;
+          lastFrame = null;
         } else {
           sampledFrames = slowFrames = 0;
           wake();

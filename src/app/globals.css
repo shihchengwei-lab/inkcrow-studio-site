@@ -438,14 +438,28 @@ body::before {
 }
 
 /* ============ PARTRIDGE PECK ============ */
-/* 動畫由 WebP 本身負責（partridge_peck.webp、24 frame、user 自製） */
+/* 畫格由原始啄食動畫無損擷取；暫停時固定在同一素材的抬頭畫格。 */
 .partridge-deco {
   right: 0;
   top: 50%;
   aspect-ratio: 1;
-  background: url('/assets/partridge_peck.webp') center/contain no-repeat;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  appearance: none;
   transform: translateY(-50%);
 }
+.partridge-art {
+  display: block;
+  position: absolute;
+  width: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  pointer-events: none;
+}
+.partridge-deco:focus-visible { outline: 2px solid var(--accent-vermillion); outline-offset: 3px; }
 
 /* ============ AUDIO TOGGLE ============ */
 .audio-toggle {
@@ -544,8 +558,7 @@ body::before {
   * { transition: none !important; animation: none !important; }
   html { scroll-behavior: auto; }
   .fade-up { opacity: 1; transform: none; }
-  /* 瀏覽器不會因 reduced-motion 暫停 WebP/GIF；手動換回靜態圖 */
-  .partridge-deco { background-image: url('/assets/partridge_corner.webp'); }
+  .partridge-art { background-position: 0 0 !important; }
   /* 減少動態時停用煙霧與換頁墨幕；首頁水墨另有靜態替代。 */
   .smoke-canvas, .nav-ink { display: none; }
 }

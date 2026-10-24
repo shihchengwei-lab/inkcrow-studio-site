@@ -22,10 +22,10 @@ export default function RootLayout({
   return (
     <html lang="zh-Hant" suppressHydrationWarning>
       <head>
-        {/* 繪製前讀取分頁記錄，避免首次淡墨與 Logo 成形前閃出完整圖形。 */}
+        {/* 繪製前讀取 Logo 記錄，避免首次成形前閃出完整圖形。 */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{if(location.pathname!=="/")return;var d=document.documentElement;if(sessionStorage.getItem("water-ink-seen"))d.setAttribute("data-intro-seen","");sessionStorage.setItem("water-ink-seen","1");if(!sessionStorage.getItem("inkcrow-logo-seen"))d.setAttribute("data-logo-intro","")}catch(e){}})()`,
+            __html: `(function(){try{if(location.pathname!=="/")return;if(!sessionStorage.getItem("inkcrow-logo-seen"))document.documentElement.setAttribute("data-logo-intro","")}catch(e){}})()`,
           }}
         />
         <link rel="preconnect" href="https://fonts.googleapis.com" />

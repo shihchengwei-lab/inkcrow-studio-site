@@ -4,6 +4,7 @@ import Immersion from "./Immersion";
 import WaterInk from "./WaterInk";
 import StudioLogo from "./StudioLogo";
 import ButterflyArtwork from "./ButterflyArtwork";
+import PartridgeArtwork from "./PartridgeArtwork";
 
 export default function Home() {
   const [audioOn, setAudioOn] = useState(false);
@@ -309,10 +310,7 @@ export default function Home() {
               ② 下載測試版 →
             </a>
           </div>
-          <span
-            className="inline-deco partridge-deco"
-            aria-hidden="true"
-          />
+          <PartridgeArtwork />
         </div>
       </section>
 
