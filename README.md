@@ -6,10 +6,12 @@
 
 | 路徑 | 用途 |
 |---|---|
-| `/` | 工作室介紹 + 願行簡介 |
+| `/` | 工作室介紹 + 願行簡介；有進場墨滴揭幕、墨暈標題、線香煙霧、蝴蝶與竹雞、依捲動變化的光影 |
 | `/privacy/` | 願行隱私權政策（Play Store「Privacy Policy URL」用） |
 | `/terms/` | 願行服務條款 |
 | `/.well-known/security.txt` | 安全研究員聯絡方式（RFC 9116） |
+
+首頁效果的程式在 `src/app/Immersion.tsx`。首頁與條款頁之間換頁時，有墨從點擊處擴散、到新頁再退去的轉場（`src/app/InkNavigation.tsx`、`layout.tsx`、`globals.css`）。條款頁正文不加動態。使用者開啟系統的「減少動態」時，這些效果都不啟動。
 
 ## 技術棧
 
@@ -38,8 +40,8 @@ npx serve out
 
 當 [`Yuanxing` repo](https://github.com/shihchengwei-lab/Yuanxing) 的 `docs/legal/PRIVACY.md` 或 `TERMS.md` 更新時：
 
-1. 將更新後內容複製到本 repo 的 `_legacy/privacy.md` / `_legacy/terms.md`
-2. 保留檔頭 Jekyll front matter（`---` 區塊；Next.js 端 build 時會自動 strip）
+1. 將更新後內容複製到本 repo 的 `content/privacy.md` / `content/terms.md`
+2. 檔頭若有 `---` 區塊（舊 Jekyll 留下的 front matter），可保留或刪除；Next.js 端 build 時會自動去掉
 3. 確認內部連結（例：TERMS 中的 `/privacy/`）正確
 4. Commit + push 至 `main`，GitHub Actions 自動 build + deploy（約 1-3 分鐘）
 
@@ -58,11 +60,7 @@ CNAME 在 `public/CNAME`、build 時帶到 `out/CNAME`、artifact 保留。
 
 ## 歷史 Jekyll 版本
 
-舊 Jekyll source 保留在 `_legacy/`，含 `_config.yml`、`index.md`、`privacy.md`、`terms.md`、`assets-jekyll/`。Git 歷史完整保留 commit history、可隨時 revert。
-
-## 設計 mockup 過程
-
-`_mockup/v0.5.html` 是設計討論過程的 HTML mockup（不 deploy）。
+舊 Jekyll 版的原始檔已從倉庫移除，可在 commit `b04e742`（改成 Next.js 的那一次）之前的 git 歷史找回。
 
 ## 聯絡
 
