@@ -1,5 +1,7 @@
 "use client";
 import { useEffect } from "react";
+import { setupSmoke } from "./smoke";
+import { setupButterfly } from "./butterfly";
 
 /*
  * 首頁沉浸效果（只負責動態，不負責版面）
@@ -106,183 +108,14 @@ function setupInk(): () => void {
   };
 }
 
-/* ---------- 2. 線香煙霧 ---------- */
-// 三支香燃燒端在香爐圖上的位置（佔圖寬高的比例，量自 col_1_wish_strip.webp）
-const INCENSE_TIPS = [
-  { x: 0.456, y: 0.369 },
-  { x: 0.502, y: 0.342 },
-  { x: 0.554, y: 0.359 },
-];
-const SMOKE_MAX = 140;
-
-type Puff = {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  age: number;
-  life: number;
-  phase: number;
-};
-
-function makeSmokeSprite(): HTMLCanvasElement {
-  const c = document.createElement("canvas");
-  c.width = c.height = 64;
-  const g = c.getContext("2d");
-  if (g) {
-    const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
-    grad.addColorStop(0, "rgba(238, 232, 222, 1)");
-    grad.addColorStop(1, "rgba(238, 232, 222, 0)");
-    g.fillStyle = grad;
-    g.fillRect(0, 0, 64, 64);
-  }
-  return c;
-}
-
-function setupSmoke(): () => void {
-  const canvas = document.querySelector<HTMLCanvasElement>(".smoke-canvas");
-  const host = canvas?.parentElement;
-  const ctx = canvas?.getContext("2d");
-  if (!canvas || !host || !ctx) return noop;
-
-  const sprite = makeSmokeSprite();
-  const puffs: Puff[] = [];
-  const carry = INCENSE_TIPS.map(() => 0);
-  let visible = false;
-  let raf = 0;
-  let last = 0;
-  let size = 0;
-  let px = 0;
-  let py = 0;
-  let pt = 0;
-
-  const resize = () => {
-    const rect = host.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-    size = Math.max(1, Math.round(rect.width * dpr));
-    canvas.width = size;
-    canvas.height = size;
-  };
-
-  const frame = (now: number) => {
-    const dt = Math.min(0.05, (now - last) / 1000);
-    last = now;
-
-    INCENSE_TIPS.forEach((tip, i) => {
-      carry[i] += dt;
-      while (carry[i] > 0.09 && puffs.length < SMOKE_MAX) {
-        carry[i] -= 0.09;
-        puffs.push({
-          x: tip.x + (Math.random() - 0.5) * 0.004,
-          y: tip.y,
-          vx: (Math.random() - 0.5) * 0.01,
-          vy: -(0.05 + Math.random() * 0.03),
-          age: 0,
-          life: 4 + Math.random() * 2.5,
-          phase: Math.random() * 6.28,
-        });
-      }
-      if (carry[i] > 0.09) carry[i] = 0;
-    });
-
-    ctx.clearRect(0, 0, size, size);
-    for (let i = puffs.length - 1; i >= 0; i--) {
-      const p = puffs[i];
-      p.age += dt;
-      if (p.age >= p.life) {
-        puffs.splice(i, 1);
-        continue;
-      }
-      p.vx += Math.sin(p.age * 1.8 + p.phase) * 0.05 * dt;
-      p.vx *= Math.pow(0.985, dt * 60);
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-      const t = p.age / p.life;
-      const r = 0.012 + t * 0.06;
-      ctx.globalAlpha = 0.28 * Math.sin(Math.PI * t);
-      ctx.drawImage(
-        sprite,
-        (p.x - r) * size,
-        (p.y - r) * size,
-        r * 2 * size,
-        r * 2 * size
-      );
-    }
-    ctx.globalAlpha = 1;
-
-    raf = visible ? requestAnimationFrame(frame) : 0;
-  };
-
-  const start = () => {
-    if (raf) return;
-    last = performance.now();
-    raf = requestAnimationFrame(frame);
-  };
-
-  // 游標掃過時，把游標速度的一部分推給附近的煙
-  const onMove = (e: PointerEvent) => {
-    const rect = host.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
-    const now = performance.now();
-    if (pt) {
-      const dts = Math.max(0.008, (now - pt) / 1000);
-      const vx = clamp((x - px) / dts, -3, 3);
-      const vy = clamp((y - py) / dts, -3, 3);
-      for (const p of puffs) {
-        const d = Math.hypot(p.x - x, p.y - y);
-        if (d < 0.2) {
-          const f = (1 - d / 0.2) * 0.12;
-          p.vx += vx * f;
-          p.vy += vy * f;
-        }
-      }
-    }
-    px = x;
-    py = y;
-    pt = now;
-  };
-
-  const io = new IntersectionObserver(
-    (entries) => {
-      visible = entries.some((e) => e.isIntersecting);
-      if (visible) start();
-    },
-    { threshold: 0 }
-  );
-  const ro = new ResizeObserver(resize);
-
-  resize();
-  io.observe(host);
-  ro.observe(host);
-  host.addEventListener("pointermove", onMove);
-  return () => {
-    host.removeEventListener("pointermove", onMove);
-    io.disconnect();
-    ro.disconnect();
-    if (raf) cancelAnimationFrame(raf);
-  };
-}
-
 /* ---------- 3. 活的蝴蝶與竹雞 ---------- */
-// 蝴蝶可以飄動的範圍（相對原位，單位 px），避免蓋住右邊的標題
-const BF_X: [number, number] = [-60, 180];
-const BF_Y: [number, number] = [-50, 170];
-const BF_FLEE_RADIUS = 170;
-
-function setupCreatures(): () => void {
-  const butterfly = document.querySelector<HTMLElement>(".butterfly-deco");
+function setupPartridge(): () => void {
   const partridge = document.querySelector<HTMLElement>(".partridge-deco");
-  if (!butterfly && !partridge) return noop;
-
-  let mx = -9999;
-  let my = -9999;
+  if (!partridge) return noop;
   let raf = 0;
   let last = 0;
-  const seen = { butterfly: false, partridge: false };
+  const seen = { partridge: false };
 
-  // 蝴蝶
-  const bf = { x: 0, y: 0, vx: 0, vy: 0 };
   // 竹雞：home 在原位、flying 飛走中、gone 不在畫面、back 飛回來
   const pt = {
     x: 0,
@@ -292,38 +125,6 @@ function setupCreatures(): () => void {
     mode: "home" as "home" | "flying" | "gone" | "back",
     since: 0,
     opacity: 1,
-  };
-
-  const stepButterfly = (t: number, f: number) => {
-    if (!butterfly) return;
-    const rect = butterfly.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    // 原位的漂浮：幾個不同週期的正弦疊起來，看起來不規律
-    let tx = 40 * Math.sin(t * 0.9) + 18 * Math.sin(t * 2.1 + 1) + 40;
-    let ty = 26 * Math.sin(t * 1.3 + 2) + 10 * Math.sin(t * 2.7) + 40;
-    const dx = cx - mx;
-    const dy = cy - my;
-    const d = Math.hypot(dx, dy);
-    if (d < BF_FLEE_RADIUS) {
-      // 游標靠近：目標改成「從現在位置沿遠離游標的方向再走一段」
-      const push = (BF_FLEE_RADIUS - d) * 1.4;
-      const nx = d > 0.001 ? dx / d : 1;
-      const ny = d > 0.001 ? dy / d : 0;
-      tx = bf.x + nx * push;
-      ty = bf.y + ny * push;
-    }
-    tx = clamp(tx, BF_X[0], BF_X[1]);
-    ty = clamp(ty, BF_Y[0], BF_Y[1]);
-    bf.vx += (tx - bf.x) * 0.02 * f;
-    bf.vy += (ty - bf.y) * 0.02 * f;
-    const damp = Math.pow(0.9, f);
-    bf.vx *= damp;
-    bf.vy *= damp;
-    bf.x = clamp(bf.x + bf.vx * f, BF_X[0], BF_X[1]);
-    bf.y = clamp(bf.y + bf.vy * f, BF_Y[0], BF_Y[1]);
-    const tilt = clamp(bf.vx * 3, -22, 22);
-    butterfly.style.transform = `translate3d(${bf.x.toFixed(2)}px, ${bf.y.toFixed(2)}px, 0) rotate(${tilt.toFixed(2)}deg)`;
   };
 
   const stepPartridge = (now: number, f: number) => {
@@ -378,9 +179,8 @@ function setupCreatures(): () => void {
   const frame = (now: number) => {
     const f = clamp((now - last) / 16.67, 0, 3);
     last = now;
-    if (seen.butterfly) stepButterfly(now / 1000, f);
     if (seen.partridge || pt.mode !== "home") stepPartridge(now, f);
-    const alive = seen.butterfly || seen.partridge || pt.mode !== "home";
+    const alive = seen.partridge || pt.mode !== "home";
     raf = alive ? requestAnimationFrame(frame) : 0;
   };
 
@@ -388,11 +188,6 @@ function setupCreatures(): () => void {
     if (raf) return;
     last = performance.now();
     raf = requestAnimationFrame(frame);
-  };
-
-  const onMove = (e: PointerEvent) => {
-    mx = e.clientX;
-    my = e.clientY;
   };
 
   const onPartridgeClick = () => {
@@ -407,24 +202,19 @@ function setupCreatures(): () => void {
   const io = new IntersectionObserver(
     (entries) => {
       entries.forEach((e) => {
-        if (e.target === butterfly) seen.butterfly = e.isIntersecting;
         if (e.target === partridge) seen.partridge = e.isIntersecting;
       });
       start();
     },
     { threshold: 0 }
   );
-  if (butterfly) io.observe(butterfly);
   if (partridge) io.observe(partridge);
 
-  window.addEventListener("pointermove", onMove, { passive: true });
   partridge?.addEventListener("click", onPartridgeClick);
   return () => {
-    window.removeEventListener("pointermove", onMove);
     partridge?.removeEventListener("click", onPartridgeClick);
     io.disconnect();
     if (raf) cancelAnimationFrame(raf);
-    if (butterfly) butterfly.style.transform = "";
     if (partridge) {
       partridge.style.transform = "";
       partridge.style.opacity = "";
@@ -438,7 +228,7 @@ export default function Immersion() {
     let cleanups: (() => void)[] = [];
     const sync = () => {
       cleanups.forEach((fn) => fn());
-      cleanups = motion.matches ? [] : [setupInk(), setupSmoke(), setupCreatures()];
+      cleanups = motion.matches ? [] : [setupInk(), setupSmoke(), setupButterfly(), setupPartridge()];
     };
     sync();
     motion.addEventListener("change", sync);

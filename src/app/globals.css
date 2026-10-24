@@ -275,6 +275,7 @@ body::before {
 }
 
 .work-col-visual { width: 100%; aspect-ratio: 1 / 1; margin-bottom: var(--space-24); }
+.work-col-visual img { display: block; }
 
 .work-cta { margin-top: var(--space-96); text-align: center; }
 
@@ -414,37 +415,26 @@ body::before {
 .work-header .inline-deco { left: 0; top: var(--space-64); }
 
 /* ============ BUTTERFLY FLAP ============ */
-/* 同一張圖（butterfly_corner.webp）渲染兩次、各只顯示一半、繞圖中軸（蝴蝶身體）rotateY */
-.butterfly-deco {
-  aspect-ratio: 1;
-  perspective: 600px;
-}
-.butterfly-deco::before,
-.butterfly-deco::after {
-  content: "";
+/* 原圖只用遮罩分層；中央身體與觸角不跟翅膀一起對折。 */
+.butterfly-deco { aspect-ratio: 1; }
+.butterfly-pose, .butterfly-original, .butterfly-wing, .butterfly-body {
   position: absolute;
   inset: 0;
-  background: url('/assets/butterfly_corner.webp') center/contain no-repeat;
-  transform-origin: center center;
+}
+.butterfly-pose { perspective: 600px; transform-origin: 50% 52%; }
+.butterfly-pose svg { display: block; width: 100%; height: 100%; }
+.butterfly-wing, .butterfly-body { visibility: hidden; }
+.butterfly-deco[data-active="true"] .butterfly-original { visibility: hidden; }
+.butterfly-deco[data-active="true"] .butterfly-wing,
+.butterfly-deco[data-active="true"] .butterfly-body { visibility: visible; }
+.butterfly-wing {
   backface-visibility: hidden;
 }
-.butterfly-deco::before {
-  clip-path: inset(0 50% 0 0);
-  animation: butterfly-flap-left 1.4s ease-in-out infinite;
+.butterfly-wing-left {
+  transform-origin: 48% 48%;
 }
-.butterfly-deco::after {
-  clip-path: inset(0 0 0 50%);
-  animation: butterfly-flap-right 1.4s ease-in-out infinite;
-}
-@keyframes butterfly-flap-left {
-  0%   { transform: rotateY(0deg);  animation-timing-function: ease-out; }
-  25%  { transform: rotateY(55deg); animation-timing-function: ease-in-out; }
-  100% { transform: rotateY(0deg); }
-}
-@keyframes butterfly-flap-right {
-  0%   { transform: rotateY(0deg);   animation-timing-function: ease-out; }
-  25%  { transform: rotateY(-55deg); animation-timing-function: ease-in-out; }
-  100% { transform: rotateY(0deg); }
+.butterfly-wing-right {
+  transform-origin: 52% 48%;
 }
 
 /* ============ PARTRIDGE PECK ============ */
@@ -524,7 +514,7 @@ body::before {
   .hero-title-en { font-size: clamp(24px, 7vw, 32px); }
   .hero-tagline { font-size: 18px; }
   .hero-visual { height: 280px; min-height: 280px; }
-  .studio { grid-template-columns: 1fr; gap: var(--space-32); padding: var(--space-64) 0; }
+  .studio { grid-template-columns: 1fr; gap: var(--space-32); padding-block: var(--space-64); }
   .studio-left { padding-top: 0; }
   .studio-quote { font-size: clamp(40px, 11vw, 56px); }
   .studio-right p { font-size: 17px; }
@@ -543,6 +533,11 @@ body::before {
   /* 手機 viewport 短，原本 -0.3 parallax 係數會把背景圖推出 viewport
      直接關掉 parallax、背景固定 */
   body::before { background-position-y: 0; }
+}
+
+@media (max-width: 600px) {
+  .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-32) var(--space-24); }
+  .footer-brand, .footer-contact { grid-column: 1 / -1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -699,4 +694,10 @@ body::before {
   }
   .legal-content h2 { font-size: 24px; }
   .legal-content h3 { font-size: 18px; }
+}
+
+@media (max-width: 600px) {
+  .legal-content table { overflow-wrap: anywhere; }
+  .legal-content th, .legal-content td { padding: var(--space-12) var(--space-8); }
+  .legal-content th { letter-spacing: 0.06em; }
 }

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import Immersion from "./Immersion";
 import WaterInk from "./WaterInk";
 import StudioLogo from "./StudioLogo";
+import ButterflyArtwork from "./ButterflyArtwork";
 
 export default function Home() {
   const [audioOn, setAudioOn] = useState(false);
@@ -229,10 +230,7 @@ export default function Home() {
 
       <section className="work container" id="work">
         <div className="work-header fade-up">
-          <span
-            className="inline-deco butterfly-deco"
-            aria-hidden="true"
-          />
+          <ButterflyArtwork />
           <div className="work-meta">Work 01 / Pilgrimage on Foot</div>
           <div>
             <h2 className="work-title">願行</h2>
@@ -339,7 +337,7 @@ export default function Home() {
                 目前以個人開發者身份營運。
               </p>
             </div>
-            <div className="footer-col">
+            <div className="footer-col footer-contact">
               <h4>Contact</h4>
               <ul className="footer-list">
                 <li>
