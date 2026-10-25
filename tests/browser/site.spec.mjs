@@ -25,6 +25,21 @@ async function home(page) {
 const routeIs = path => url => url.pathname.replace(/\/$/, "") === path;
 const noCover = page => expect(page.locator(".nav-ink")).toHaveCount(0);
 
+test.describe("正文不依賴動畫啟動", () => {
+  test.use({ javaScriptEnabled: false });
+  test("JavaScript 未執行時，工作室與作品正文仍可讀", async ({ page }) => {
+    await page.goto("/");
+    const sections = page.locator(".fade-up");
+    expect(await sections.count()).toBeGreaterThan(0);
+    for (const section of await sections.all()) {
+      await expect(section).toHaveCSS("opacity", "1");
+      await expect(section).toHaveCSS("transform", "none");
+    }
+    await expect(page.locator(".studio-right")).toContainText("墨鴉是一間獨立工作室");
+    await expect(page.locator('link[rel="icon"]')).toHaveAttribute("href", "/favicon.webp");
+  });
+});
+
 test("首頁與兩個法律頁正常往返，錨點保留，窄螢幕不溢出", async ({ page, isMobile }) => {
   await home(page);
   const origin = await page.evaluate(() => performance.timeOrigin);

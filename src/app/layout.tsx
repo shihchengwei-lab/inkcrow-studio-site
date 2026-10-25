@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "墨鴉工作室 — 願行 Pilgrimage on Foot",
   description:
     "墨鴉是一間獨立工作室，做一點自己想玩的遊戲。現役作品「願行」，用走路累積願力，與民間信仰的神明同行。",
+  icons: { icon: { url: "/favicon.webp", type: "image/webp", sizes: "256x256" } },
 };
 
 export const viewport: Viewport = {

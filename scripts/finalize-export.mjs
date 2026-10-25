@@ -1,10 +1,12 @@
-import { readdir, rename, stat } from "node:fs/promises";
+import { mkdir, readFile, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const exportRoot = fileURLToPath(new URL("../out/", import.meta.url));
+export const SNAPSHOT_PATH = fileURLToPath(new URL("../.preview/site.json", import.meta.url));
 
-/** Next 16.2.9 的 Windows 匯出留下反斜線；校正成 Linux 發布使用的 segment 檔名。 */
+/** Next 16.4.3 仍有 Windows 路徑分隔問題；只在建置邊界校正實體 segment 檔名。 */
 export async function normalizeExportSegments(root = exportRoot) {
   root = resolve(root);
   const moves = [];
@@ -34,10 +36,37 @@ export async function normalizeExportSegments(root = exportRoot) {
   return moves.length;
 }
 
+/** 完整讀取成功才以單一檔案發布；預覽不再依賴之後可能被重建的 out。 */
+export async function writePreviewSnapshot(root = exportRoot, destination = SNAPSHOT_PATH) {
+  if (!(await stat(join(root, "index.html")).catch(() => null))?.isFile()) {
+    throw new Error("找不到 out/index.html，請先執行 npm run build。");
+  }
+  const files = {};
+  const collect = async directory => {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      const path = join(directory, entry.name);
+      if (entry.isDirectory()) await collect(path);
+      else if (entry.isFile()) {
+        files["/" + relative(root, path).split(sep).join("/")] = (await readFile(path)).toString("base64");
+      }
+    }
+  };
+  await collect(root);
+  await mkdir(join(destination, ".."), { recursive: true });
+  const temporary = destination + "." + randomUUID() + ".tmp";
+  try {
+    await writeFile(temporary, JSON.stringify(files));
+    await rename(temporary, destination);
+  } finally {
+    await rm(temporary, { force: true });
+  }
+}
+
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     const count = await normalizeExportSegments();
-    console.log(`匯出路由資料檔名已確認（校正 ${count} 檔）。`);
+    await writePreviewSnapshot();
+    console.log(`完成匯出與預覽成品（路由檔名校正 ${count} 檔）。`);
   } catch (error) {
     console.error(error.message); process.exitCode = 1;
   }

@@ -1,11 +1,11 @@
 import { createServer } from "node:http";
-import { readFile, readdir, stat } from "node:fs/promises";
-import { extname, join, relative, resolve, sep } from "node:path";
+import { readFile } from "node:fs/promises";
+import { extname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
+import { SNAPSHOT_PATH } from "./finalize-export.mjs";
 
 export const DEFAULT_PORT = 4317;
-const exportRoot = fileURLToPath(new URL("../out/", import.meta.url));
 const contentTypes = {
   ".html": "text/html; charset=utf-8", ".txt": "text/plain; charset=utf-8",
   ".js": "text/javascript; charset=utf-8", ".mjs": "text/javascript; charset=utf-8",
@@ -15,25 +15,22 @@ const contentTypes = {
   ".woff": "font/woff", ".woff2": "font/woff2",
 };
 
-/** 只提供既有匯出檔，不以首頁掩蓋缺檔；不啟動 Next 開發伺服器。 */
-export async function createPreviewServer(root = exportRoot) {
+/** 一次載入完成建置的全部位元組；請求只讀同一份成品，缺檔仍為 404。 */
+export async function createPreviewServer(snapshotPath = SNAPSHOT_PATH) {
   const files = new Map(), pages = new Map();
-  if (!(await stat(join(root, "index.html")).catch(() => null))?.isFile()) {
-    throw new Error("找不到 out/index.html，請先執行 npm run build。");
+  let snapshot;
+  try {
+    snapshot = JSON.parse(await readFile(snapshotPath, "utf8"));
+    if (typeof snapshot["/index.html"] !== "string") throw new Error("缺少首頁");
+  } catch {
+    throw new Error("找不到可讀取的完成建置，請先執行 npm run build。");
   }
-  const collect = async directory => {
-    for (const entry of await readdir(directory, { withFileTypes: true })) {
-      const path = join(directory, entry.name);
-      if (entry.isDirectory()) await collect(path);
-      else if (entry.isFile()) {
-        const url = "/" + relative(root, path).split(sep).join("/");
-        files.set(url, path);
-        if (entry.name === "index.html") pages.set(url.slice(0, -10), path);
-      }
-    }
-  };
-  await collect(root);
-  return createServer(async (request, response) => {
+  for (const [url, encoded] of Object.entries(snapshot)) {
+    const file = { body: Buffer.from(encoded, "base64"), type: contentTypes[extname(url)] ?? "application/octet-stream" };
+    files.set(url, file);
+    if (url.endsWith("/index.html")) pages.set(url.slice(0, -10), file);
+  }
+  return createServer((request, response) => {
     if (request.method !== "GET" && request.method !== "HEAD") {
       response.writeHead(405, { Allow: "GET, HEAD" }); response.end(); return;
     }
@@ -49,17 +46,13 @@ export async function createPreviewServer(root = exportRoot) {
     }
     const file = files.get(pathname) ?? pages.get(pathname);
     const selected = file ?? files.get("/404.html");
-    try {
-      const body = selected ? await readFile(selected) : Buffer.from("Not found");
-      response.writeHead(file ? 200 : 404, {
-        "Content-Type": selected ? contentTypes[extname(selected)] ?? "application/octet-stream" : "text/plain",
-        "Content-Length": body.length,
-        "Cache-Control": "no-store",
-      });
-      response.end(request.method === "HEAD" ? undefined : body);
-    } catch {
-      response.writeHead(404); response.end();
-    }
+    const body = selected?.body ?? Buffer.from("Not found");
+    response.writeHead(file ? 200 : 404, {
+      "Content-Type": selected?.type ?? "text/plain",
+      "Content-Length": body.length,
+      "Cache-Control": "no-store",
+    });
+    response.end(request.method === "HEAD" ? undefined : body);
   });
 }
 
@@ -70,7 +63,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("port 必須介於 1 與 65535。");
     const server = await createPreviewServer();
     server.on("error", error => { console.error(error.message); process.exitCode = 1; });
-    server.listen(port, "127.0.0.1", () => console.log(`靜態預覽：http://127.0.0.1:${port}/（停止：Ctrl+C）`));
+    server.listen(port, "127.0.0.1", () => console.log(`靜態預覽：http://127.0.0.1:${port}/（固定完成版本；停止：Ctrl+C）`));
   } catch (error) {
     console.error(error.message); process.exitCode = 1;
   }

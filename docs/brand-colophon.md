@@ -4,9 +4,9 @@
 
 - 工具：Codex 內建 image_gen，透明背景。
 - 原始檔：`C:/Users/kk789/.codex/generated_images/01a16b4a-c348-79a3-b2a7-3f1fb3e58be2/exec-f0fad0db-d5ef-4226-9120-29fffca570fe.png`
-- 工作室：`public/assets/studio-colophon.png`
+- 工作室：`public/assets/studio-colophon.webp`（160×160，透明 WebP）
 - 書庫：`C:/Users/kk789/Desktop/e-book/ebook/assets/studio-colophon.png`
-- 兩份 PNG 直接複製生成結果，保留原始透明度。CSS mask 以 `exclude` 從 40px 朱紅印面挖空圖紋，透出頁面底色；兩站的亮暗模式均使用 `#c83a2a` 朱紅，印面端正、四角一致。
+- 工作室發布檔由原始圖縮至 160×160，再無損編碼為 WebP；書庫維持既有 PNG。兩者保留透明背景與同一圖紋。CSS mask 以 `exclude` 從 40px 朱紅印面挖空圖紋，透出頁面底色；兩站的亮暗模式均使用 `#c83a2a` 朱紅，印面端正、四角一致。
 
 ## 蓋印行為
 

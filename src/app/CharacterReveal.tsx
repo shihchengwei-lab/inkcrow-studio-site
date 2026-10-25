@@ -23,9 +23,9 @@ export default function CharacterReveal({ scene }: { scene: keyof typeof images 
     <div className={`character-reveal character-reveal-${scene}`} data-turned={turned}>
       {/* 新圖只提供神明頭部；周圍持續顯示原圖，避免生成差異帶動玩家或背景。 */}
       {/* eslint-disable @next/next/no-img-element */}
-      <img src={image.back} alt={image.alt} className="character-back" />
-      <img src={image.original} alt="" aria-hidden="true" className="character-surroundings" />
-      <img src={image.original} alt="" aria-hidden="true" className="character-turned" />
+      <img src={image.back} alt={image.alt} className="character-back" loading="lazy" decoding="async" />
+      <img src={image.original} alt="" aria-hidden="true" className="character-surroundings" loading="lazy" decoding="async" />
+      <img src={image.original} alt="" aria-hidden="true" className="character-turned" loading="lazy" decoding="async" />
       {/* eslint-enable @next/next/no-img-element */}
     </div>
   );

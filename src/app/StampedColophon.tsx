@@ -7,7 +7,7 @@ export default function StampedColophon() {
   const ref = useRef<HTMLSpanElement>(null);
   useEffect(() => {
     if (!ref.current) return;
-    return mountFooterStamp(ref.current, { imageUrl: "/assets/studio-colophon.png" });
+    return mountFooterStamp(ref.current, { imageUrl: "/assets/studio-colophon.webp" });
   }, []);
   return <span ref={ref} className="studio-seal" data-stamp-state="pending" aria-hidden="true" />;
 }

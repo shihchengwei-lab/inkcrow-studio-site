@@ -15,11 +15,16 @@ export default function Home() {
 
   useEffect(() => {
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const animations = new Set<Animation>();
     const setScrollY = () => {
       document.body.style.setProperty("--scroll-y", `${motion.matches ? 0 : window.scrollY}px`);
     };
+    const motionChanged = () => {
+      setScrollY();
+      if (motion.matches) animations.forEach((animation) => animation.cancel());
+    };
     window.addEventListener("scroll", setScrollY, { passive: true });
-    motion.addEventListener("change", setScrollY);
+    motion.addEventListener("change", motionChanged);
     setScrollY();
 
     const items = document.querySelectorAll<HTMLElement>(".fade-up");
@@ -29,23 +34,32 @@ export default function Home() {
         (entries) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
-              entry.target.classList.add("in-view");
               observer?.unobserve(entry.target);
+              if (motion.matches) return;
+              // 正文始終可見；有限動畫只暫時覆蓋樣式，完成或取消即恢復正文。
+              const animation = entry.target.animate([
+                { opacity: 0, transform: "translateY(24px)" },
+                { opacity: 1, transform: "translateY(0)" },
+              ], {
+                duration: 700, easing: "ease-out", fill: "backwards",
+                delay: Number(getComputedStyle(entry.target).getPropertyValue("--fade-delay")) || 0,
+              });
+              animations.add(animation);
+              animation.finished.then(() => animations.delete(animation), () => animations.delete(animation));
             }
           });
         },
         { threshold: 0.15, rootMargin: "0px 0px -80px 0px" }
       );
       items.forEach((el) => observer!.observe(el));
-    } else {
-      items.forEach((el) => el.classList.add("in-view"));
     }
 
     return () => {
       window.removeEventListener("scroll", setScrollY);
-      motion.removeEventListener("change", setScrollY);
+      motion.removeEventListener("change", motionChanged);
       document.body.style.removeProperty("--scroll-y");
       observer?.disconnect();
+      animations.forEach((animation) => animation.cancel());
     };
   }, []);
 

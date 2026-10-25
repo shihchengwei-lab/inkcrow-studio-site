@@ -393,7 +393,7 @@ body::before {
   height: 40px;
   background: #c83a2a;
   border-radius: 3px;
-  mask: linear-gradient(#000 0 0), url("/assets/studio-colophon.png") center / 88% no-repeat;
+  mask: linear-gradient(#000 0 0), url("/assets/studio-colophon.webp") center / 88% no-repeat;
   mask-composite: exclude;
   opacity: 0;
 }
@@ -406,20 +406,9 @@ body::before {
 }
 
 /* ============ FADE-UP ============ */
-.fade-up {
-  opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 700ms ease-out, transform 700ms ease-out;
-}
-
-.fade-up.in-view {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.work-cols .fade-up:nth-child(1) { transition-delay: 0ms; }
-.work-cols .fade-up:nth-child(2) { transition-delay: 150ms; }
-.work-cols .fade-up:nth-child(3) { transition-delay: 300ms; }
+/* 正文不設隱藏狀態；進場動畫由瀏覽器限時播放，結束後使用原本樣式。 */
+.work-cols .fade-up:nth-child(2) { --fade-delay: 150; }
+.work-cols .fade-up:nth-child(3) { --fade-delay: 300; }
 
 /* ============ INLINE DECO ============ */
 .inline-deco {
@@ -521,8 +510,8 @@ body::before {
   background-repeat: no-repeat;
   pointer-events: none;
 }
-.audio-toggle-bird--closed { background-image: url('/assets/bird-sound-closed.png'); }
-.audio-toggle-bird--open { background-image: url('/assets/bird-sound-open.png'); opacity: 0; }
+.audio-toggle-bird--closed { background-image: url('/assets/bird-sound-closed.webp'); }
+.audio-toggle-bird--open { background-image: url('/assets/bird-sound-open.webp'); opacity: 0; }
 .audio-toggle[aria-pressed="true"] .audio-toggle-bird--closed { opacity: 0; }
 .audio-toggle[aria-pressed="true"] .audio-toggle-bird--open { opacity: 1; }
 .audio-toggle-call {
@@ -592,7 +581,6 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
   html { scroll-behavior: auto; }
-  .fade-up { opacity: 1; transform: none; }
   .partridge-art { background-position: 0 0 !important; }
   /* 減少動態時停用煙霧；首頁水墨另有靜態替代。 */
   .smoke-canvas { display: none; }
