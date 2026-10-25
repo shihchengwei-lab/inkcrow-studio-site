@@ -311,8 +311,16 @@ export default function Home() {
         onClick={toggleAudio}
         className="audio-toggle"
         aria-label={audioOn ? "關閉鳥叫" : "開啟鳥叫"}
+        aria-pressed={audioOn}
+        title={audioOn ? "關閉鳥叫" : "開啟鳥叫"}
       >
-        {audioOn ? "🔊 鳥叫 開" : "🔇 鳥叫 關"}
+        <span className="audio-toggle-bird audio-toggle-bird--closed" aria-hidden="true" />
+        <span className="audio-toggle-bird audio-toggle-bird--open" aria-hidden="true" />
+        {audioOn && (
+          <svg className="audio-toggle-call" viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+            <path d="m63 18 5-5m-2 14 7-1m-9 10 5 4" />
+          </svg>
+        )}
       </button>
 
       <footer className="footer">

@@ -493,20 +493,50 @@ body::before {
   bottom: 24px;
   right: 24px;
   z-index: 100;
-  padding: 8px 14px;
-  font-family: inherit;
-  font-size: 13px;
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid rgba(47, 42, 34, 0.45);
+  border-radius: 50%;
+  overflow: visible;
+  transform: scale(0.85);
+  transform-origin: bottom right;
   cursor: pointer;
   color: inherit;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  transition: background 0.15s ease;
+  transition: opacity 0.15s ease;
 }
 .audio-toggle:hover {
-  background: rgba(255, 255, 255, 0.95);
+  opacity: 0.8;
+}
+.audio-toggle-bird {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  /* 同一個取景位置，切換時只改變鳥嘴，不移動鳥頭。 */
+  background-size: 192px 192px;
+  background-position: -124px -15px;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+.audio-toggle-bird--closed { background-image: url('/assets/bird-sound-closed.png'); }
+.audio-toggle-bird--open { background-image: url('/assets/bird-sound-open.png'); opacity: 0; }
+.audio-toggle[aria-pressed="true"] .audio-toggle-bird--closed { opacity: 0; }
+.audio-toggle[aria-pressed="true"] .audio-toggle-bird--open { opacity: 1; }
+.audio-toggle-call {
+  position: absolute;
+  inset: 0;
+  width: 64px;
+  height: 64px;
+  overflow: visible;
+  color: var(--accent-vermillion);
+  pointer-events: none;
+}
+.audio-toggle:focus-visible {
+  outline: 2px solid var(--accent-vermillion);
+  outline-offset: 4px;
 }
 
 /* ============ 換頁墨色轉場 ============ */
