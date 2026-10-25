@@ -1,10 +1,13 @@
 /**
  * 到頁底才蓋印；圖紋載入後才允許顯示，單次掛載只播放一次。
+ * motionEnabled：要不要播蓋印動畫。沒傳時跟著系統的「減少動態效果」；
+ * 有傳時整個交給它決定（書庫傳入自己的動態開關，讀者手動開啟可蓋過系統設定）。
  * @param {HTMLElement} element
  * @param {{imageUrl: string, motionEnabled?: () => boolean}} options
  */
-export function mountFooterStamp(element, { imageUrl, motionEnabled = () => true }) {
+export function mountFooterStamp(element, { imageUrl, motionEnabled }) {
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const allowMotion = motionEnabled ?? (() => !reduced.matches);
   let ready = false;
   let started = false;
   let finished = false;
@@ -42,7 +45,7 @@ export function mountFooterStamp(element, { imageUrl, motionEnabled = () => true
   function tick(now) {
     frame = 0;
     if (disposed || finished || document.hidden) return;
-    if (reduced.matches || !motionEnabled()) { finish(); return; }
+    if (!allowMotion()) { finish(); return; }
     // 小步積分維持不同更新率下的阻尼手感，背景時間不補播。
     let remaining = last ? Math.min((now - last) / 1000, 0.05) : 0;
     last = now;
@@ -63,7 +66,7 @@ export function mountFooterStamp(element, { imageUrl, motionEnabled = () => true
     started = true;
     window.removeEventListener('scroll', check);
     window.removeEventListener('resize', check);
-    if (reduced.matches || !motionEnabled()) { finish(); return; }
+    if (!allowMotion()) { finish(); return; }
     element.dataset.stampState = 'stamping';
     motionObserver = new MutationObserver(motionChanged);
     motionObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
@@ -72,7 +75,7 @@ export function mountFooterStamp(element, { imageUrl, motionEnabled = () => true
   }
 
   function motionChanged() {
-    if (started && !finished && (reduced.matches || !motionEnabled())) finish();
+    if (started && !finished && !allowMotion()) finish();
   }
 
   function visibility() {
