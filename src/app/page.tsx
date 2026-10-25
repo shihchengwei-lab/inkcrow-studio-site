@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
+import BirdSound from "./bird-sound/BirdSound";
 import Immersion from "./Immersion";
 import WaterInk from "./WaterInk";
 import StudioLogo from "./StudioLogo";
@@ -9,8 +10,7 @@ import CharacterReveal from "./CharacterReveal";
 import StampedColophon from "./StampedColophon";
 
 export default function Home() {
-  const [audioOn, setAudioOn] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const partridgeRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -47,101 +47,6 @@ export default function Home() {
       observer?.disconnect();
     };
   }, []);
-
-  // 開啟後先叫一段，之後每 8–15 秒再叫；靠近竹雞較清楚，遠處仍保留環境聲。
-  useEffect(() => {
-    if (!audioOn || !audioRef.current) return;
-    const partridgeEl = document.querySelector<HTMLElement>(".partridge-deco");
-    if (!partridgeEl) return;
-    const audio = audioRef.current;
-
-    let timeoutId: number | null = null;
-    let frameId: number | null = null;
-    let cancelled = false;
-    const BASE_VOLUME = 0.16;
-    const MIN_VOLUME = 0.08;
-    const PEAK_DISTANCE = 400;
-    const OUTER_WIDTH = 4000;
-    const FADE_IN_MS = 500;
-    const FADE_OUT_MS = 600;
-    const PLAY_DURATION_MS = 5000; // 切在第 5 聲後、避開最後 0.5s 的半聲
-
-    const playCall = async () => {
-      if (cancelled) return;
-      const rect = partridgeEl.getBoundingClientRect();
-      const partridgeCenterY = rect.top + rect.height / 2;
-      const viewportCenterY = window.innerHeight / 2;
-      const distance = Math.abs(partridgeCenterY - viewportCenterY);
-      const peakVol = Math.max(
-        MIN_VOLUME,
-        BASE_VOLUME * (1 - Math.max(0, distance - PEAK_DISTANCE) / OUTER_WIDTH),
-      );
-
-      audio.volume = 0;
-      audio.currentTime = 0;
-      try {
-        await audio.play();
-      } catch {
-        if (!cancelled) setAudioOn(false);
-        return;
-      }
-      if (cancelled) return;
-
-      // 音檔開始播放後才計算淡入／淡出，慢速載入不會吃掉整段叫聲。
-      const start = performance.now();
-      const tick = () => {
-        frameId = null;
-        if (cancelled) return;
-        const t = performance.now() - start;
-        if (t >= PLAY_DURATION_MS) {
-          audio.pause();
-          audio.volume = 0;
-          return;
-        }
-        let factor: number;
-        if (t < FADE_IN_MS) {
-          factor = t / FADE_IN_MS;
-        } else if (t < PLAY_DURATION_MS - FADE_OUT_MS) {
-          factor = 1;
-        } else {
-          factor = (PLAY_DURATION_MS - t) / FADE_OUT_MS;
-        }
-        audio.volume = peakVol * Math.max(0, Math.min(1, factor));
-        frameId = requestAnimationFrame(tick);
-      };
-      frameId = requestAnimationFrame(tick);
-
-      const gap = 8000 + Math.random() * 7000;
-      timeoutId = window.setTimeout(playCall, gap);
-    };
-
-    audio.loop = false;
-    void playCall();
-
-    return () => {
-      cancelled = true;
-      if (timeoutId !== null) clearTimeout(timeoutId);
-      if (frameId !== null) cancelAnimationFrame(frameId);
-      audio.pause();
-      audio.volume = 0;
-    };
-  }, [audioOn]);
-
-  const toggleAudio = () => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio("/assets/partridge_call.mp3");
-      audioRef.current.preload = "auto";
-    }
-    // 第一次開啟時、在 user gesture 同步中 prime audio（iOS 友善）
-    // 不在這裡 pause，留給 useEffect 接手間歇播放。
-    if (!audioOn) {
-      audioRef.current.volume = 0;
-      audioRef.current.play().catch(() => {
-        /* prime 失敗也繼續 */
-      });
-    }
-    setAudioOn((v) => !v);
-  };
 
   return (
     <div className="home-page">
@@ -302,26 +207,11 @@ export default function Home() {
               ② 下載測試版 →
             </a>
           </div>
-          <PartridgeArtwork />
+          <PartridgeArtwork elementRef={partridgeRef} />
         </div>
       </section>
 
-      <button
-        type="button"
-        onClick={toggleAudio}
-        className="audio-toggle"
-        aria-label={audioOn ? "關閉鳥叫" : "開啟鳥叫"}
-        aria-pressed={audioOn}
-        title={audioOn ? "關閉鳥叫" : "開啟鳥叫"}
-      >
-        <span className="audio-toggle-bird audio-toggle-bird--closed" aria-hidden="true" />
-        <span className="audio-toggle-bird audio-toggle-bird--open" aria-hidden="true" />
-        {audioOn && (
-          <svg className="audio-toggle-call" viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
-            <path d="m63 18 5-5m-2 14 7-1m-9 10 5 4" />
-          </svg>
-        )}
-      </button>
+      <BirdSound anchorRef={partridgeRef} />
 
       <footer className="footer">
         <div className="container">
