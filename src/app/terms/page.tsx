@@ -1,6 +1,4 @@
-import fs from "fs/promises";
-import path from "path";
-import { marked } from "marked";
+import LegalDocument from "../LegalDocument";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -8,22 +6,6 @@ export const metadata: Metadata = {
   description: "願行服務條款（Terms of Service）",
 };
 
-export default async function TermsPage() {
-  const raw = await fs.readFile(
-    path.join(process.cwd(), "content", "terms.md"),
-    "utf-8"
-  );
-  const body = raw.replace(/^---[\s\S]*?---\r?\n/, "");
-  const html = await marked.parse(body, { gfm: true });
-  return (
-    <article className="legal-page container">
-      <a href="/" className="legal-back">
-        ← 回首頁
-      </a>
-      <div
-        className="legal-content"
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
-    </article>
-  );
+export default function TermsPage() {
+  return <LegalDocument document="terms" />;
 }

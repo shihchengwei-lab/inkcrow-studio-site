@@ -1,0 +1,24 @@
+/* ============ 換頁墨色轉場 ============ */
+/* 紙幕下完成換頁，再從點擊處以柔邊向外揭開；正文維持原位。
+   註冊長度讓遮罩半徑能連續插值，不會退化成二元切換。 */
+@property --ink-radius {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+.nav-ink {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at var(--ink-x) var(--ink-y), rgba(36,37,38,.075), transparent 65%),
+    var(--bg);
+  mask-image: radial-gradient(circle at var(--ink-x) var(--ink-y),
+    transparent max(0px, calc(var(--ink-radius) - 100px)),
+    #000 var(--ink-radius));
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-ink { display: none; }
+}

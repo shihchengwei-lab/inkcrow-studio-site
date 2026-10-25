@@ -539,27 +539,6 @@ body::before {
   outline-offset: 4px;
 }
 
-/* ============ 換頁墨色轉場 ============ */
-/* 紙幕下完成換頁，再從點擊處以柔邊向外揭開；正文維持原位。
-   註冊長度讓遮罩半徑能連續插值，不會退化成二元切換。 */
-@property --ink-radius {
-  syntax: '<length>';
-  inherits: false;
-  initial-value: 0px;
-}
-.nav-ink {
-  position: fixed;
-  inset: 0;
-  z-index: 1100;
-  overflow: hidden;
-  background:
-    radial-gradient(ellipse at var(--ink-x) var(--ink-y), rgba(36,37,38,.075), transparent 65%),
-    var(--bg);
-  mask-image: radial-gradient(circle at var(--ink-x) var(--ink-y),
-    transparent max(0px, calc(var(--ink-radius) - 100px)),
-    #000 var(--ink-radius));
-  pointer-events: none;
-}
 /* 標題立即清楚呈現，暈墨僅由游標停留觸發。 */
 .ink-char { display: inline-block; }
 
@@ -615,8 +594,8 @@ body::before {
   html { scroll-behavior: auto; }
   .fade-up { opacity: 1; transform: none; }
   .partridge-art { background-position: 0 0 !important; }
-  /* 減少動態時停用煙霧與換頁墨幕；首頁水墨另有靜態替代。 */
-  .smoke-canvas, .nav-ink { display: none; }
+  /* 減少動態時停用煙霧；首頁水墨另有靜態替代。 */
+  .smoke-canvas { display: none; }
 }
 
 /* ============ LEGAL PAGES (privacy / terms) ============ */

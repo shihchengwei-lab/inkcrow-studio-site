@@ -2,6 +2,7 @@
 import { useEffect, useRef } from "react";
 import BirdSound from "./bird-sound/BirdSound";
 import Immersion from "./Immersion";
+import InkTitle from "./InkTitle";
 import WaterInk from "./WaterInk";
 import StudioLogo from "./StudioLogo";
 import ButterflyArtwork from "./ButterflyArtwork";
@@ -51,44 +52,13 @@ export default function Home() {
   return (
     <div className="home-page">
       <WaterInk />
-      {/* 墨暈標題用的濾鏡：每個字一組，才能各自暈開 */}
-      <svg
-        width="0"
-        height="0"
-        aria-hidden="true"
-        style={{ position: "absolute" }}
-      >
-        <defs>
-          {[0, 1].map((i) => (
-            <filter
-              key={i}
-              id={`ink-bleed-${i}`}
-              x="-30%"
-              y="-30%"
-              width="160%"
-              height="160%"
-              colorInterpolationFilters="sRGB"
-            >
-              <feGaussianBlur id={`ink-blur-${i}`} stdDeviation="0" />
-              <feColorMatrix
-                id={`ink-mat-${i}`}
-                type="matrix"
-                values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0"
-              />
-            </filter>
-          ))}
-        </defs>
-      </svg>
       <Immersion />
       <section className="hero container">
         <div className="hero-text">
           <div className="eyebrow hero-eyebrow">
             Inkcrow Studio · Independent · Taipei
           </div>
-          <h1 className="hero-title">
-            <span className="ink-char">墨</span>
-            <span className="ink-char">鴉</span>
-          </h1>
+          <InkTitle text="墨鴉" />
           <div className="hero-title-en">Inkcrow Studio</div>
           <p className="hero-tagline">獨立工作室、做一點自己想玩的遊戲。</p>
           <a href="#work" className="hero-chip">

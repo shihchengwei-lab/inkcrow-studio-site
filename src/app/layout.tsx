@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import InkNavigation from "./InkNavigation";
 import WishPresence from "./WishPresence";
+import { LOGO_PRELUDE } from "./studio-logo/config";
 
 export const metadata: Metadata = {
   title: "墨鴉工作室 — 願行 Pilgrimage on Foot",
@@ -26,7 +27,7 @@ export default function RootLayout({
         {/* 繪製前讀取 Logo 記錄，避免首次成形前閃出完整圖形。 */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{if(location.pathname!=="/")return;if(!sessionStorage.getItem("inkcrow-logo-seen"))document.documentElement.setAttribute("data-logo-intro","")}catch(e){}})()`,
+            __html: LOGO_PRELUDE,
           }}
         />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
