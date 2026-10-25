@@ -63,8 +63,12 @@ body::before {
 .container {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0 var(--space-64);
+  padding-inline: var(--space-64);
 }
+
+.home-copy { min-inline-size: 0; overflow-wrap: anywhere; }
+.home-copy--display { text-wrap: balance; }
+.home-copy-sentence { display: block; }
 
 .eyebrow {
   font-family: var(--font-mono);
@@ -148,27 +152,30 @@ body::before {
 
 /* ============ STUDIO ============ */
 .studio {
-  padding: var(--space-128) 0;
+  padding-block: var(--space-128);
+}
+
+.studio-layout {
   display: grid;
   grid-template-columns: 1.1fr 1.5fr;
   gap: var(--space-96);
   align-items: start;
 }
 
-.studio-left { padding-top: var(--space-32); }
+.studio-left { padding-top: var(--space-32); container-type: inline-size; }
 
 .studio-quote {
   font-family: var(--font-display-zh);
   font-weight: 500;
-  font-size: clamp(48px, 6vw, 80px);
-  line-height: 1.05;
+  font-size: clamp(40px, 16cqi, 80px);
+  line-height: 1.15;
   color: var(--accent-vermillion);
   margin-bottom: var(--space-32);
   text-indent: -0.4em;
 }
 
-.studio-quote::before { content: '「'; opacity: 0.7; }
-.studio-quote::after { content: '」'; opacity: 0.7; }
+.studio-quote .home-copy-sentence::before { content: '「'; opacity: 0.7; }
+.studio-quote .home-copy-sentence::after { content: '」'; opacity: 0.7; }
 
 .studio-right h2 {
   font-family: var(--font-mono);
@@ -546,15 +553,16 @@ body::before {
 
 /* ============ RESPONSIVE ============ */
 @media (max-width: 900px) {
-  .container { padding: 0 var(--space-24); }
+  .container { padding-inline: var(--space-24); }
   .hero { grid-template-columns: 1fr; gap: var(--space-48); padding-top: var(--space-64); padding-bottom: var(--space-64); min-height: auto; }
   .hero-title { font-size: clamp(72px, 22vw, 96px); }
   .hero-title-en { font-size: clamp(24px, 7vw, 32px); }
   .hero-tagline { font-size: 18px; }
   .hero-visual { height: 280px; min-height: 280px; }
-  .studio { grid-template-columns: 1fr; gap: var(--space-32); padding-block: var(--space-64); }
+  .studio { padding-block: var(--space-64); }
+  .studio-layout { grid-template-columns: 1fr; gap: var(--space-32); }
   .studio-left { padding-top: 0; }
-  .studio-quote { font-size: clamp(40px, 11vw, 56px); }
+  .studio-quote { font-size: clamp(40px, 13cqi, 56px); }
   .studio-right p { font-size: 17px; }
   .work-header { grid-template-columns: 1fr; gap: var(--space-24); margin-bottom: var(--space-48); }
   .work-meta { padding-top: 0; }
@@ -701,6 +709,16 @@ body::before {
   font-size: 14px;
 }
 
+.legal-table-scroll {
+  overflow-x: auto;
+  margin-block: var(--space-24);
+}
+.legal-table-scroll table { margin-block: 0; }
+.legal-table-scroll:focus-visible {
+  outline: 2px solid var(--accent-vermillion);
+  outline-offset: 4px;
+}
+
 .legal-content thead {
   border-bottom: 2px solid var(--accent-vermillion);
 }
@@ -712,13 +730,18 @@ body::before {
   vertical-align: top;
 }
 
-.legal-content th {
+.legal-content thead th {
   font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.2em;
+  font-size: 14px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--accent-vermillion);
   font-weight: 400;
+}
+
+.legal-content tbody th {
+  font-weight: 500;
+  min-width: 7em;
 }
 
 .legal-content em { font-style: italic; }
@@ -733,7 +756,34 @@ body::before {
 }
 
 @media (max-width: 600px) {
-  .legal-content table { overflow-wrap: anywhere; }
+  .legal-table-scroll table {
+    min-width: 32rem;
+    table-layout: fixed;
+    overflow-wrap: anywhere;
+  }
   .legal-content th, .legal-content td { padding: var(--space-12) var(--space-8); }
-  .legal-content th { letter-spacing: 0.06em; }
+  /* 兩欄是名稱與說明；沿用同一份表格內容，窄版逐筆閱讀。 */
+  .legal-pairs, .legal-pairs tbody { display: block; }
+  .legal-pairs thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .legal-pairs tr {
+    display: grid;
+    gap: var(--space-8);
+    padding-block: var(--space-16);
+    border-bottom: 1px solid var(--rule-hairline);
+  }
+  .legal-pairs tbody tr:first-child { border-top: 2px solid var(--accent-vermillion); }
+  .legal-pairs th, .legal-pairs td {
+    display: block;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    overflow-wrap: anywhere;
+  }
+  .legal-pairs tbody th { color: var(--accent-vermillion); }
 }

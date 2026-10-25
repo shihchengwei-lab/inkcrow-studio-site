@@ -9,6 +9,7 @@ import ButterflyArtwork from "./ButterflyArtwork";
 import PartridgeArtwork from "./PartridgeArtwork";
 import CharacterReveal from "./CharacterReveal";
 import StampedColophon from "./StampedColophon";
+import HomeCopy from "./HomeCopy";
 
 export default function Home() {
   const partridgeRef = useRef<HTMLButtonElement | null>(null);
@@ -74,7 +75,7 @@ export default function Home() {
           </div>
           <InkTitle text="墨鴉" />
           <div className="hero-title-en">Inkcrow Studio</div>
-          <p className="hero-tagline">獨立工作室、做一點自己想玩的遊戲。</p>
+          <HomeCopy kind="hero-tagline" text="獨立工作室、做一點自己想玩的遊戲。" />
           <a href="#work" className="hero-chip">
             現役作品 · 願行
           </a>
@@ -84,32 +85,32 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="studio container fade-up">
-        <div className="studio-left">
-          <p className="studio-quote">做自己想玩的遊戲。</p>
-          <span className="rule-heavy"></span>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/assets/hibiscus_corner.webp"
-            alt=""
-            className="inline-deco"
-            aria-hidden="true"
-          />
-        </div>
-        <div className="studio-right">
-          <h2>About / 工作室</h2>
-          <p>墨鴉是一間獨立工作室。沒有大團隊、不追求量產。</p>
-          <p>
-            我們做自己想玩的遊戲、做完、拿出來給世界看。如果剛好有人也喜歡、那是兩件好事。
-          </p>
-          <p>目前以個人開發者身份營運。作品以軟體與互動體驗為主。</p>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/assets/cedar_corner.webp"
-            alt=""
-            className="inline-deco"
-            aria-hidden="true"
-          />
+      <section className="studio fade-up">
+        <div className="container studio-layout">
+          <div className="studio-left">
+            <HomeCopy kind="studio-quote" text="做自己想玩的遊戲。" />
+            <span className="rule-heavy"></span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/assets/hibiscus_corner.webp"
+              alt=""
+              className="inline-deco"
+              aria-hidden="true"
+            />
+          </div>
+          <div className="studio-right">
+            <h2>About / 工作室</h2>
+            <HomeCopy kind="body" text="墨鴉是一間獨立工作室。沒有大團隊、不追求量產。" />
+            <HomeCopy kind="body" text="我們做自己想玩的遊戲、做完、拿出來給世界看。如果剛好有人也喜歡、那是兩件好事。" />
+            <HomeCopy kind="body" text="目前以個人開發者身份營運。作品以軟體與互動體驗為主。" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/assets/cedar_corner.webp"
+              alt=""
+              className="inline-deco"
+              aria-hidden="true"
+            />
+          </div>
         </div>
       </section>
 
@@ -127,9 +128,7 @@ export default function Home() {
           <div>
             <h2 className="work-title">願行</h2>
             <div className="work-subtitle">Pilgrimage on Foot</div>
-            <p className="work-tagline">
-              用走路累積願力、與民間信仰的神明同行。每一步、都是一次安靜的回禮。
-            </p>
+            <HomeCopy kind="work-tagline" text="用走路累積願力、與民間信仰的神明同行。每一步、都是一次安靜的回禮。" />
           </div>
         </div>
 
@@ -150,9 +149,7 @@ export default function Home() {
             </div>
             <div className="work-col-en">accumulation</div>
             <h3>累積願力</h3>
-            <p>
-              每天走的路、都化成一點點願力。日復一日、像在心裡蓋一座屬於自己的小神壇。
-            </p>
+            <HomeCopy kind="body" text="每天走的路、都化成一點點願力。日復一日、像在心裡蓋一座屬於自己的小神壇。" />
           </div>
           <div className="work-col fade-up">
             <div className="work-col-visual">
@@ -160,9 +157,7 @@ export default function Home() {
             </div>
             <div className="work-col-en">companions</div>
             <h3>神明同行</h3>
-            <p>
-              媽祖、保生大帝、月老、玄壇真君......民間信仰的神明、在路上陪你走。每一位、都有自己的脾性與故事。
-            </p>
+            <HomeCopy kind="body" text="媽祖、保生大帝、月老、玄壇真君......民間信仰的神明、在路上陪你走。每一位、都有自己的脾性與故事。" />
           </div>
         </div>
 
@@ -203,11 +198,7 @@ export default function Home() {
             <div className="footer-brand">
               <h3>墨鴉工作室</h3>
               <div className="footer-brand-en">Inkcrow Studio</div>
-              <p>
-                獨立工作室、做一點自己想玩的遊戲。
-                <br />
-                目前以個人開發者身份營運。
-              </p>
+              <HomeCopy kind="body" text="獨立工作室、做一點自己想玩的遊戲。目前以個人開發者身份營運。" />
             </div>
             <div className="footer-col footer-contact">
               <h4>Contact</h4>
