@@ -40,23 +40,30 @@ Logo 或竹雞所在區塊離開畫面、分頁隱藏時，暫停動畫與等待
 - 靜態匯出（`output: 'export'`）—— build 完落 `out/`
 - 字體：Google Fonts CDN（Noto Serif TC、Cormorant Garamond、Source Serif 4、IBM Plex Mono）
 
-## 本地預覽
+## 安裝與開發
 
 使用 `.node-version` 指定的 Node.js 版本；自動發布使用同一版本。
 
 ```powershell
-npm install
+npm ci
+npm run test:browser:install
 npm run dev
 # http://localhost:3000
 ```
 
-## 本地 build
+`npm ci` 使用鎖定的套件版本；第二行安裝與 Playwright 版本配對的 Chromium，首次安裝或更新 Playwright 後執行一次。
+
+## 正式版本預覽
 
 ```powershell
 npm run build
-# 產出在 out/，可用任何 static server 預覽
-npx serve out
+npm run preview
+# http://127.0.0.1:4317
 ```
+
+預覽直接提供 `out/` 的正式匯出檔。`npm start` 是相同入口；以 Ctrl+C 停止。若連接埠已被占用，可用 `npm run preview -- --port 4318`。修改後須停止預覽、再次建置，再重新啟動預覽。
+
+建置會校正 Next.js 16.2.9 在 Windows 產生的換頁資料檔名，使本地與 Linux 發布使用同樣的網址；預覽伺服器只提供實際檔案，缺檔會回傳 404。
 
 ## 修改後驗證
 
@@ -64,7 +71,11 @@ npx serve out
 npm run check
 ```
 
-依序執行程式檢查、行為測試與正式建置；只跑行為測試可用 `npm test`。測試在固定時間與輸入下核對動畫、排程、互動及清理，不取代實際瀏覽器的外觀、觸控與換頁確認。
+依序執行程式檢查、行為測試、正式建置與 Chromium 瀏覽器驗證。瀏覽器測試會自行啟動及關閉預覽伺服器，不需另開 `dev` 或 `preview`；連接埠被占用時會失敗，避免誤測其他版本。需要換埠時，先在 PowerShell 設定 `$env:PREVIEW_PORT = "4318"`。
+
+只跑行為測試可用 `npm test`；只建置並驗證瀏覽器可用 `npm run test:browser`。瀏覽器驗證涵蓋桌機、390px 與 320px 觸控視窗的法律頁往返、錨點、慢速換頁與連點、Logo 重播與離屏暫停、減少動態、手機捲動與橫向溢出，並檢查執行錯誤與站內缺檔。這些自動驗證不取代外觀判讀、實機觸控手感、耗電或其他瀏覽器測試。
+
+失敗時的畫面與 trace 存於 `test-results/`，報告存於 `playwright-report/`，均不納入 Git；可用 `npx playwright show-report` 開啟報告。
 
 ## 更新法律文件流程
 
@@ -80,7 +91,7 @@ npm run check
 由 `.github/workflows/deploy.yml` 自動處理：
 
 1. push 到 main
-2. GitHub Actions 跑 `npm ci` + `npm run check`；程式檢查、行為測試與建置全部通過才部署
+2. GitHub Actions 安裝鎖定套件與 Chromium，再跑 `npm run check`；程式檢查、行為測試、建置與瀏覽器驗證全部通過才部署，失敗報告保留 7 天
 3. 把 `out/` 上傳到 `actions/upload-pages-artifact`
 4. GitHub Pages 從 artifact 服務、綁 `inkcrow-studio.com` 自訂網域
 
