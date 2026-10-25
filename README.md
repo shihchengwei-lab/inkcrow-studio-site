@@ -103,10 +103,6 @@ npm run check
 
 CNAME 在 `public/CNAME`、build 時帶到 `out/CNAME`、artifact 保留。
 
-## 歷史 Jekyll 版本
-
-舊 Jekyll 版的原始檔已從倉庫移除，可在 commit `b04e742`（改成 Next.js 的那一次）之前的 git 歷史找回。
-
 ## 聯絡
 
 support@inkcrow-studio.com

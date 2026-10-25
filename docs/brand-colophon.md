@@ -23,7 +23,3 @@
 - 書庫中英文頁均由左側印章與 `Inkcrow Studio` 整組連到 `https://inkcrow-studio.com/`，右側只保留 GitHub。
 - 書庫兩個連結共用字型、字級、字距、底線、滑鼠移入與鍵盤焦點樣式，依各語言頁既有字體設定顯示。
 - 書庫原有紙色、字體設定、書封與開關的彈簧互動均保留。
-
-## 生成提示
-
-Use case: logo-brand. Create one refined, text-free secondary publisher's mark for Inkcrow Studio, for a quiet independent-bookshop website footer at only 36–40 CSS pixels. The attached image is a motif reference only: its crow, feather/quill and ink bottle identify the studio. Design a NEW simplified companion mark, not a reproduction of the full emblem. A poised left-facing crow with a distinctive strong beak and graceful tapered tail, with a single quill suggested in clean negative space within or beside the lower body, subtly rooted in the shape of an ink pot. Integrate these into one compact balanced silhouette. Sophisticated small-press colophon / restrained woodcut sensibility, clean intentional contours, generous negative-space openings, no fine hatch marks, no distressed speckles, no tiny decorative detail. Prioritize readability at 36 pixels. Monochrome solid black opaque ink on a genuinely transparent background; no gradients, shadows, paper, mockup, or white backing. No letters, no Chinese characters, no numbers, no typography, no border, no surrounding circle or square, no extra objects. Square canvas, centered mark, artwork fills about 85 percent of width and height with modest even padding. Deliver only the single isolated mark.
