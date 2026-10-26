@@ -10,6 +10,7 @@ import PartridgeArtwork from "./PartridgeArtwork";
 import CharacterReveal from "./CharacterReveal";
 import StampedColophon from "./StampedColophon";
 import HomeCopy from "./HomeCopy";
+import WhaleSea from "./WhaleSea";
 
 export default function Home() {
   const partridgeRef = useRef<HTMLButtonElement | null>(null);
@@ -66,6 +67,7 @@ export default function Home() {
 
   return (
     <div className="home-page">
+      <WhaleSea />
       <WaterInk />
       <Immersion />
       <section className="hero container">

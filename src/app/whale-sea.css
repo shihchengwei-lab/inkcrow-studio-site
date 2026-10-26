@@ -1,0 +1,36 @@
+/* 只在首頁替換海圖；法律頁仍使用原本的完整靜態鯨魚島。 */
+body:has(.home-page)::before { background-image: url('/assets/sea-chart.webp'); }
+
+.whale-sea {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  overflow: clip;
+  pointer-events: none;
+  opacity: .28;
+  /* 文字密集的中央留淡，兩側仍能辨認博物畫的線條。 */
+  mask-image: linear-gradient(90deg, #000, #000b 38%, #000c 62%, #000);
+}
+
+.whale-still {
+  position: absolute;
+  left: 50%;
+  top: 55%;
+  height: clamp(var(--whale-min), var(--whale-width), var(--whale-max));
+  width: auto;
+  max-width: none;
+  transform: translate(-50%, -50%) rotate(48deg);
+}
+
+.whale-canvas { display: none; width: 100%; height: 100%; }
+.whale-sea[data-mode="swimming"] .whale-canvas { display: block; }
+.whale-sea[data-mode="swimming"] .whale-still { visibility: hidden; }
+
+@media (max-width: 600px) {
+  .whale-sea { opacity: .24; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .whale-sea .whale-canvas { display: none; }
+  .whale-sea .whale-still { visibility: visible; }
+}
