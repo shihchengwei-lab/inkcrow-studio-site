@@ -65,6 +65,31 @@ test("減少動態不建立鯨魚繪圖資源，切換偏好後可停止及恢�
   await expect(page.locator(".whale-still")).toBeVisible();
 });
 
+test("連續調整視窗後沿用繪圖資源並繼續游動，暫停與恢復仍正常", async ({ page }) => {
+  const errors = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await page.goto("/");
+  const scene = page.locator(".whale-sea");
+  await expect(scene).toHaveAttribute("data-mode", "swimming");
+  const contexts = await page.evaluate(() => window.whaleContexts);
+  for (const [width, height] of [[320, 900], [844, 390], [1920, 1080], [390, 844], [1440, 900]]) {
+    const frames = await page.evaluate(() => window.whaleFrames);
+    await page.setViewportSize({ width, height });
+    await expect.poll(() => page.evaluate(() => window.whaleFrames)).toBeGreaterThan(frames);
+    await expect(scene).toHaveAttribute("data-mode", "swimming");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
+  expect(await page.evaluate(() => window.whaleContexts)).toBe(contexts);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(scene).toHaveAttribute("data-mode", "still");
+  await page.setViewportSize({ width: 320, height: 900 });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await expect(scene).toHaveAttribute("data-mode", "swimming");
+  const frames = await page.evaluate(() => window.whaleFrames);
+  await expect.poll(() => page.evaluate(() => window.whaleFrames)).toBeGreaterThan(frames);
+  expect(errors).toEqual([]);
+});
+
 test("繪圖資源失效後完整退回靜態鯨魚，法律頁不留下動畫", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator(".whale-sea")).toHaveAttribute("data-mode", "swimming");

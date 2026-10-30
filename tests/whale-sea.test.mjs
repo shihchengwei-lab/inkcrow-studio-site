@@ -6,7 +6,92 @@ import { moduleLoader } from "./helpers/load-module.mjs";
 const load = moduleLoader();
 const { whalePoint, whaleScreenPath, whaleSpine, createWhaleMesh, positionWhale } = load(resolve("src/app/whale-sea/model.ts"));
 const { createWhaleRoute } = load(resolve("src/app/whale-sea/whale-route.ts"));
-const { MAX_BODY_BEND, MAX_JOINT_BEND, MAX_TURN_RATE } = load(resolve("src/app/whale-sea/config.ts"));
+const { MAX_BODY_BEND, MAX_JOINT_BEND, MAX_TURN_RATE, whaleLength } = load(resolve("src/app/whale-sea/config.ts"));
+
+function near(actual, expected, message, tolerance = 1e-7) {
+  assert.ok(Math.abs(actual - expected) < tolerance, `${message}: ${actual} vs ${expected}`);
+}
+
+function sameMotion(actual, expected) {
+  for (const key of ["x", "y", "vx", "vy", "ax", "ay", "swim"]) near(actual[key], expected[key], key);
+  actual.spine.forEach((value, i) => near(value, expected.spine[i], `spine[${i}]`));
+}
+
+test("游動一小時後連續縮放只轉移現有狀態，不重算歷史", () => {
+  let steps = 0;
+  const math = Object.create(Math);
+  math.hypot = (...args) => { steps++; return Math.hypot(...args); };
+  const { createWhaleRoute } = moduleLoader({ Math: math })(resolve("src/app/whale-sea/whale-route.ts"));
+  const route = createWhaleRoute(7);
+  route.sample(3600);
+  for (let i = 0; i < 60; i++) {
+    steps = 0;
+    route.sample(3600 + i / 60, i % 2 ? 320 : 1920, i % 3 ? 900 : 390);
+    // advance 每步至少呼叫一次 hypot；縮放成本不能包含從零開始的 72000 步。
+    assert.ok(steps <= 2, `resize ${i}: ${steps} simulation steps`);
+  }
+});
+
+test("縮放保留當下頭部位置、每節彎曲與擺尾相位，游速隨既有體長規則調整", () => {
+  const route = createWhaleRoute(42), t = 83.217;
+  let width = 1440, height = 900, p = route.sample(t, width, height);
+  for (const [w, h] of [[320, 900], [844, 390], [2560, 1440], [390, 844], [1440, 900]]) {
+    const next = route.sample(t, w, h);
+    near(next.x, p.x, "head x"); near(next.y, p.y, "head y");
+    near(next.swim, p.swim, "swim phase");
+    const ratio = whaleLength(w) / whaleLength(width);
+    const speedRatio = (24 + whaleLength(w) * .045) / (24 + whaleLength(width) * .045);
+    near(next.vx * w, p.vx * width * speedRatio, "velocity x");
+    near(next.vy * h, p.vy * height * speedRatio, "velocity y");
+    for (let i = 0; i < p.spine.length; i += 3) {
+      near(next.spine[i] - next.x * w, (p.spine[i] - p.x * width) * ratio, "body x");
+      near(next.spine[i + 1] - next.y * h, (p.spine[i + 1] - p.y * height) * ratio, "body y");
+      near(next.spine[i + 2], p.spine[i + 2], "body angle");
+    }
+    p = next; width = w; height = h;
+  }
+});
+
+test("同時刻高度或體長往返縮放，不改變後續選路、轉向與擺尾", () => {
+  for (const seed of [7, 42, 987654]) {
+    for (const [w, h] of [[1440, 300], [320, 900], [2560, 1440]]) {
+      const changed = createWhaleRoute(seed), control = createWhaleRoute(seed), t = 83.217;
+      changed.sample(t); control.sample(t);
+      for (let i = 0; i < 10; i++) {
+        changed.sample(t, w, h);
+        sameMotion(changed.sample(t), control.sample(t));
+      }
+      for (let i = 1; i <= 120; i++) sameMotion(changed.sample(t + i / 60), control.sample(t + i / 60));
+    }
+  }
+});
+
+test("縮放前後擺尾相位與速率連續，後續身體仍逐節跟隨且不翻折", () => {
+  const mesh = createWhaleMesh(), t = 83.217, dt = 1e-5;
+  for (const [w, h] of [[320, 900], [844, 390], [2560, 1440]]) {
+    const route = createWhaleRoute(42);
+    const prior = route.sample(t - dt), current = route.sample(t);
+    const resized = route.sample(t, w, h), next = route.sample(t + dt, w, h);
+    near(resized.swim, current.swim, "phase");
+    near((next.swim - resized.swim) / dt, (current.swim - prior.swim) / dt, "phase rate", 1e-5);
+    for (let frame = 1; frame <= 600; frame++) {
+      const at = t + frame / 60, pose = whaleScreenPath(w, h, at, route);
+      const cruise = 24 + pose.height * .045;
+      assert.ok(pose.speed > cruise * .8 && pose.speed < cruise * 1.2);
+      assert.ok(Math.abs(pose.turn) <= Math.min(MAX_TURN_RATE, pose.speed * MAX_BODY_BEND / pose.height) + .002);
+      for (let i = 3; i < pose.spine.length; i += 3) {
+        near(Math.hypot(pose.spine[i] - pose.spine[i - 3], pose.spine[i + 1] - pose.spine[i - 2]), pose.height / 48, "joint length");
+        assert.ok(Math.abs(pose.spine[i + 2] - pose.spine[i - 1]) <= MAX_JOINT_BEND + .0001);
+      }
+      positionWhale(mesh, w, h, at, route);
+      const p = mesh.positions;
+      for (let i = 0; i < mesh.indices.length; i += 3) {
+        const [a, b, c] = Array.from(mesh.indices.slice(i, i + 3), index => index * 2);
+        assert.ok((p[b] - p[a]) * (p[c + 1] - p[a + 1]) - (p[b + 1] - p[a + 1]) * (p[c] - p[a]) < 0);
+      }
+    }
+  }
+});
 
 function renderedPoint(mesh, width, height, row, u) {
   const start = row * 25 * 2;

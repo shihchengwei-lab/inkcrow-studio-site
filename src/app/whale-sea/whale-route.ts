@@ -3,7 +3,7 @@ import { MAX_JOINT_BEND, MAX_TURN_RATE, MIN_TURN_RADIUS, WHALE_ROWS, whaleLength
 // 逐節跟隨及依體長限制轉向改寫自 ascii-sharks (MIT)。授權見 /licenses/ascii-sharks.txt。
 const STEP = .05;
 const START = 0;
-type Point = { at: number; x: number; y: number; vx: number; vy: number; swim: number; spine: Float64Array };
+type Motion = { at: number; x: number; y: number; vx: number; vy: number; turn: number; swim: number; spine: Float64Array };
 
 function clamp(value: number, low: number, high: number) {
   return Math.max(low, Math.min(high, value));
@@ -21,15 +21,15 @@ function randomSource(seed: number) {
   };
 }
 
-function interpolate(a: number, va: number, b: number, vb: number, t: number) {
+function interpolate(a: number, va: number, b: number, vb: number, t: number, duration: number) {
   const t2 = t * t, t3 = t2 * t;
   return {
-    value: (2 * t3 - 3 * t2 + 1) * a + (t3 - 2 * t2 + t) * STEP * va
-      + (-2 * t3 + 3 * t2) * b + (t3 - t2) * STEP * vb,
-    velocity: ((6 * t2 - 6 * t) * a + (3 * t2 - 4 * t + 1) * STEP * va
-      + (-6 * t2 + 6 * t) * b + (3 * t2 - 2 * t) * STEP * vb) / STEP,
-    acceleration: ((12 * t - 6) * a + (6 * t - 4) * STEP * va
-      + (-12 * t + 6) * b + (6 * t - 2) * STEP * vb) / (STEP * STEP),
+    value: (2 * t3 - 3 * t2 + 1) * a + (t3 - 2 * t2 + t) * duration * va
+      + (-2 * t3 + 3 * t2) * b + (t3 - t2) * duration * vb,
+    velocity: ((6 * t2 - 6 * t) * a + (3 * t2 - 4 * t + 1) * duration * va
+      + (-6 * t2 + 6 * t) * b + (3 * t2 - 2 * t) * duration * vb) / duration,
+    acceleration: ((12 * t - 6) * a + (6 * t - 4) * duration * va
+      + (-12 * t + 6) * b + (6 * t - 2) * duration * vb) / (duration * duration),
   };
 }
 
@@ -49,15 +49,62 @@ export function createWhaleRoute(seed = Math.floor(Math.random() * 4294967296)) 
       targetX: width * .5, targetY: height * .5, targetSpeed: speed, nextGoal: START, swim: 0 };
   };
   let state = initial();
-  const point = (): Point => ({
+  const point = (): Motion => ({
     at: state.at, x: state.x, y: state.y,
     vx: Math.cos(state.angle) * state.speed, vy: Math.sin(state.angle) * state.speed, swim: state.swim,
-    spine: state.spine.slice(),
+    turn: state.turn, spine: state.spine.slice(),
   });
   let before = point(), after = before;
   const reset = (w: number, h: number) => {
     width = w; height = h; length = whaleLength(width);
     random = randomSource(seed); state = initial(); before = point(); after = before;
+  };
+  const poseAt = (at: number) => {
+    const a = before, b = after;
+    const duration = b.at - a.at;
+    const fraction = clamp((at - a.at) / duration, 0, 1);
+    const x = interpolate(a.x, a.vx, b.x, b.vx, fraction, duration);
+    const y = interpolate(a.y, a.vy, b.y, b.vy, fraction, duration);
+    const spine = new Float64Array((WHALE_ROWS + 1) * 3);
+    spine.set([x.value, y.value, Math.atan2(y.velocity, x.velocity) + Math.PI], 0);
+    for (let row = 1; row <= WHALE_ROWS; row++) {
+      const i = row * 3, previous = i - 3;
+      const raw = a.spine[i + 2] + angleDifference(b.spine[i + 2], a.spine[i + 2]) * fraction;
+      const angle = spine[previous + 2] + angleDifference(raw, spine[previous + 2]);
+      spine[i] = spine[previous] + Math.cos(angle) * length / WHALE_ROWS;
+      spine[i + 1] = spine[previous + 1] + Math.sin(angle) * length / WHALE_ROWS;
+      spine[i + 2] = angle;
+    }
+    return { x, y, spine, swim: a.swim + (b.swim - a.swim) * fraction };
+  };
+  const resize = (w: number, h: number, at: number) => {
+    // 轉移現有兩幀與模擬狀態，不從種子重播；Pose 只供定位，不回灌模擬轉速。
+    const pose = poseAt(at), nextLength = whaleLength(w);
+    const sizeRatio = nextLength / length;
+    const speedRatio = (24 + nextLength * .045) / (24 + length * .045);
+    const x = pose.x.value / width * w, y = pose.y.value / height * h;
+    const timeRatio = sizeRatio / speedRatio;
+    const transfer = (motion: Motion): Motion => {
+      const spine = motion.spine.slice();
+      for (let i = 0; i < spine.length; i += 3) {
+        spine[i] = x + (spine[i] - pose.x.value) * sizeRatio;
+        spine[i + 1] = y + (spine[i + 1] - pose.y.value) * sizeRatio;
+      }
+      return { ...motion, at: at + (motion.at - at) * timeRatio,
+        x: x + (motion.x - pose.x.value) * sizeRatio,
+        y: y + (motion.y - pose.y.value) * sizeRatio,
+        vx: motion.vx * speedRatio, vy: motion.vy * speedRatio,
+        turn: motion.turn / timeRatio,
+        swim: pose.swim + (motion.swim - pose.swim) * timeRatio, spine };
+    };
+    // 同步換算相鄰幀的時間跨度，維持目前插值比例、身形及新尺寸的巡游速度。
+    before = transfer(before); after = transfer(after);
+    state.targetX *= w / width; state.targetY *= h / height;
+    state.targetSpeed *= speedRatio;
+    state.x = after.x; state.y = after.y; state.at = after.at;
+    state.speed *= speedRatio; state.turn = after.turn;
+    state.swim = after.swim; state.spine = after.spine.slice();
+    width = w; height = h; length = nextLength;
   };
   const advance = () => {
     if (state.at >= state.nextGoal || Math.hypot(state.targetX - state.x, state.targetY - state.y) < Math.min(width, height) * .12) {
@@ -100,27 +147,18 @@ export function createWhaleRoute(seed = Math.floor(Math.random() * 4294967296)) 
   return {
     sample(seconds: number, viewportWidth = 1440, viewportHeight = 900) {
       const at = Math.max(START, seconds);
-      if (viewportWidth !== width || viewportHeight !== height || at < before.at) reset(viewportWidth, viewportHeight);
+      const resized = viewportWidth !== width || viewportHeight !== height;
+      if (at < before.at || (resized && before === after)) reset(viewportWidth, viewportHeight);
       // 始終維持 before.at <= at <= after.at；60Hz 繪圖只在相鄰模擬幀間插值。
       while (after.at < at || after.at === before.at) { before = after; advance(); after = point(); }
-      const a = before, b = after;
-      const fraction = clamp((at - a.at) / STEP, 0, 1);
-      const x = interpolate(a.x, a.vx, b.x, b.vx, fraction);
-      const y = interpolate(a.y, a.vy, b.y, b.vy, fraction);
-      const spine = new Float64Array((WHALE_ROWS + 1) * 3);
-      spine.set([x.value, y.value, Math.atan2(y.velocity, x.velocity) + Math.PI], 0);
-      for (let row = 1; row <= WHALE_ROWS; row++) {
-        const i = row * 3, previous = i - 3;
-        const raw = a.spine[i + 2] + angleDifference(b.spine[i + 2], a.spine[i + 2]) * fraction;
-        const angle = spine[previous + 2] + angleDifference(raw, spine[previous + 2]);
-        spine[i] = spine[previous] + Math.cos(angle) * length / WHALE_ROWS;
-        spine[i + 1] = spine[previous + 1] + Math.sin(angle) * length / WHALE_ROWS;
-        spine[i + 2] = angle;
+      if (viewportWidth !== width || viewportHeight !== height) {
+        resize(viewportWidth, viewportHeight, at);
       }
+      const { x, y, spine, swim } = poseAt(at);
       return {
         x: x.value / width, y: y.value / height, vx: x.velocity / width, vy: y.velocity / height,
         ax: x.acceleration / width, ay: y.acceleration / height,
-        swim: a.swim + (b.swim - a.swim) * fraction, spine,
+        swim, spine,
       };
     },
   };
