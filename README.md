@@ -67,7 +67,28 @@ npm run preview
 
 預覽成品位於 `.preview/site.json`，由建置產生、不納入 Git，也不部署至官網。建置失敗不覆蓋上次完成的成品。預覽只提供成品內的檔案，缺檔會回傳 404。
 
-Next.js 16.4.3 仍會在 Windows 產生錯誤的換頁資料檔名；`scripts/finalize-export.mjs` 在建置結束時先校正實體檔，再產生預覽成品。本地與 Linux 發布使用相同網址；未來框架修正此問題且通過 Windows 驗證後，可移除這一段校正。
+目前保留 `scripts/finalize-export.mjs` 的檔名校正。Next.js 16.4.3 在 Windows 建置時，會把部分換頁資料誤寫成子目錄，造成預載請求找不到檔案（404）。腳本在建置結束後校正實體檔名，再產生預覽成品，讓 Windows 本機預覽與 Linux 發布使用相同的資料網址。
+
+官網維持預設預載模式；16.4.3 的強制完整預載（`prefetch={true}`）另有停滯問題，因此不採用。未來升級 Next.js 後，須確認 Windows 原始匯出檔名正確、預載沒有 404，且換頁與瀏覽器上一頁／下一頁都通過，再移除檔名校正。
+
+<details>
+<summary>2026-10-31 Windows 查證結果與來源</summary>
+
+上游 [問題 #85374](https://github.com/vercel/next.js/issues/85374) 與 [PR #99058](https://github.com/vercel/next.js/pull/99058) 已指出原因：Windows 路徑使用反斜線，但匯出檔名轉換只處理正斜線，導致原應為單一檔案的路徑被寫成子目錄。
+
+本次在原生 Windows 11，將 PR 的兩處修正套入隔離的 Next.js 16.4.3 套件對照；未建置完整上游分支。測試涵蓋 Turbopack 的結尾斜線開啟／關閉、`basePath: '/test'`，以及 Webpack 的結尾斜線開啟，共四種設定。
+
+四組結果一致：
+
+| 檢查 | 原版 | 套用上游修正後 |
+|---|---|---|
+| 27 個匯出資料檔中的錯誤路徑 | 12 個 | 0 個 |
+| 直接讀取 24 個資料網址時的 404 | 11 個 | 0 個，回應內容與建置來源一致 |
+| 預設預載下的實際換頁 | 預載有 404，但仍可透過完整資料備援完成 | 無預載 404，六個路由及上一頁／下一頁均通過，無須整頁重載 |
+
+強制完整預載是另一個問題：它請求 HTML 網頁網址，卻將回應當成換頁資料解碼，導致持續等待；原版與套用檔名修正後皆會發生。只將該筆請求改指向正確資料檔，兩版都能完成換頁；預設預載或關閉預載也能完成。原因可核對 [runtime 預載流程](https://github.com/vercel/next.js/blob/v16.4.3/packages/next/src/client/components/segment-cache/cache.ts#L2532-L2678) 與 [靜態匯出的回應檢查](https://github.com/vercel/next.js/blob/v16.4.3/packages/next/src/client/components/segment-cache/cache.ts#L3663-L3697)。
+
+</details>
 
 ## 修改後驗證
 
