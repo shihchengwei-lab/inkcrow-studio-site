@@ -18,11 +18,13 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("鯨魚持續游動，分頁隱藏時停止繪製，返回後接續", async ({ page }) => {
-  await page.clock.install();
+  const clockStart = new Date("2026-01-01T00:00:00Z");
+  await page.clock.install({ time: clockStart });
   await page.goto("/");
   const scene = page.locator(".whale-sea");
   await expect(scene).toHaveAttribute("data-mode", "swimming");
-  await page.clock.pauseAt(await page.evaluate(() => Date.now() + 100));
+  // 絕對截止時間晚於整項測試的 30 秒上限，不受兩次呼叫之間的 CI 延遲影響。
+  await page.clock.pauseAt(new Date(clockStart.getTime() + 60_000));
   await page.addStyleTag({ content: ".whale-sea{z-index:1000;opacity:1;mask-image:none;background:#F5EFE3}" });
   const before = await page.locator(".whale-canvas").screenshot();
   const frames = await page.evaluate(() => window.whaleFrames);
