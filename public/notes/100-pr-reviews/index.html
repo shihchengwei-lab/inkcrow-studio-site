@@ -1,0 +1,831 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>I used Codex to review 100 open-source PRs. I left no comment on 76 of them.</title><style>
+
+:root {
+
+
+  --bg-canvas: light-dark(#f9f8f6, #161616);
+  --text-primary: light-dark(#1a1918, #dedede);
+  --text-secondary: light-dark(#66645e, #888888);
+  --border-hairline: light-dark(#e2e0d8, #2c2c2c);
+  --code-bg: light-dark(#f0eee9, #202020);
+
+
+  --font-sans: "iA Writer Quattro", "iA Writer Duo", -apple-system, BlinkMacSystemFont,
+               "PingFang TC", "Noto Sans TC", "Heiti TC", sans-serif;
+  --font-mono: "iA Writer Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+
+  --font-size-fluid: clamp(1.125rem, 0.96rem + 0.6vw, 1.375rem);
+  --line-height-optimal: 1.7;
+
+
+  --measure: 35em;
+
+
+  --paragraph-spacing: 1.25em;
+
+
+  color-scheme: light dark;
+
+  --font-scale: 1;
+}
+
+
+:root[data-theme="dark"] { color-scheme: dark; }
+:root[data-theme="light"] { color-scheme: light; }
+
+
+:root:lang(en) {
+  --font-sans: "iA Writer Quattro", "iA Writer Duo", Inter, -apple-system, BlinkMacSystemFont,
+               "Segoe UI", sans-serif;
+}
+
+
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+
+  font-size: calc(var(--font-size-fluid) * var(--font-scale));
+  line-height: var(--line-height-optimal);
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-kerning: normal;
+  font-variant-ligatures: common-ligatures contextual;
+}
+
+
+html.font-large  { --font-scale: 1.2; }
+html.font-xlarge { --font-scale: 1.5; }
+
+body {
+  margin: 0;
+
+  padding-block: clamp(1rem, 3vh, 2rem) clamp(3rem, 8vh, 6rem);
+
+  padding-inline: clamp(18px, 5vw, 27px);
+}
+
+
+
+article, main, .ia-container, .content-wrapper,
+.top-nav, .chapter-banner, .site-footer {
+  max-width: var(--measure);
+  margin-inline: auto;
+}
+
+
+
+p {
+  margin-top: 0;
+  margin-bottom: var(--paragraph-spacing);
+  text-indent: 0;
+  text-align: left;
+  hanging-punctuation: first allow-end last;
+}
+
+h1, h2, h3 {
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-top: 2.4em;
+  margin-bottom: 0.6em;
+
+  text-wrap: balance;
+}
+
+
+:lang(zh) h1, :lang(zh) h2, :lang(zh) h3 {
+  letter-spacing: 0;
+}
+
+h1 {
+  font-size: 1.65em;
+  margin-top: 0;
+  margin-bottom: 1em;
+}
+
+h2 {
+  font-size: 1.3em;
+}
+
+h3 {
+  font-size: 1.08em;
+}
+
+ul, ol {
+  margin-top: 0;
+  margin-bottom: var(--paragraph-spacing);
+  padding-left: 1.4em;
+}
+
+li {
+  margin-bottom: 0.4em;
+}
+
+blockquote {
+  margin: 1.75em 0;
+  padding-left: 1.25em;
+  border-left: 2px solid var(--border-hairline);
+  color: var(--text-secondary);
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--border-hairline);
+  margin: 3em 0;
+}
+
+
+code, pre, .code-block {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  font-variant-numeric: tabular-nums;
+}
+
+
+pre code {
+  font-size: 1em;
+}
+
+:not(pre) > code {
+  background-color: var(--code-bg);
+  padding: 0.15em 0.35em;
+  border-radius: 3px;
+}
+
+pre, .code-block {
+  background-color: var(--code-bg);
+  padding: 1.25em;
+  overflow-x: auto;
+  margin-bottom: var(--paragraph-spacing);
+  border-radius: 4px;
+}
+
+
+.code-block {
+  margin-top: 1.75em;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--text-secondary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+
+}
+
+a:hover {
+  text-decoration-color: var(--text-primary);
+}
+
+
+article, main, .content-wrapper, a, :not(pre) > code {
+  overflow-wrap: break-word;
+}
+
+
+
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92em;
+  margin: 1em 0 var(--paragraph-spacing);
+}
+
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.55em 0.9em 0.55em 0;
+  border-bottom: 1px solid var(--border-hairline);
+  overflow-wrap: anywhere;
+}
+
+th {
+  font-weight: 700;
+  border-bottom-color: var(--text-secondary);
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+
+.top-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 1.25em;
+  margin-bottom: 3em;
+}
+
+.top-nav .nav-right {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: baseline;
+  gap: 0 1.25em;
+}
+
+.top-nav a,
+.top-nav .book-title,
+.font-toggle,
+.theme-toggle {
+  font-size: 0.78em;
+  color: var(--text-secondary);
+}
+
+.top-nav a,
+.font-toggle,
+.theme-toggle {
+  padding: 0.6em 0;
+  text-decoration: none;
+}
+
+.top-nav a:hover,
+.font-toggle:hover,
+.theme-toggle:hover {
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+  text-decoration-thickness: 1px;
+}
+
+
+.top-nav .nav-left a:not(.lang-toggle),
+.top-nav .nav-right > a:not(.lang-toggle) {
+  display: none;
+}
+.top-nav .nav-left:not(:has(.lang-toggle)) {
+  display: none;
+}
+
+
+.font-toggle,
+.theme-toggle {
+  appearance: none;
+  background: none;
+  border: 0;
+  margin: 0;
+  font-family: inherit;
+  line-height: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 0.4em;
+}
+
+
+.chapter-banner {
+  margin-bottom: 3em;
+}
+
+.chapter-banner .chapter-label {
+  font-size: 0.78em;
+  letter-spacing: 0.12em;
+  color: var(--text-secondary);
+  margin-bottom: 0.75em;
+}
+
+.chapter-banner h1 {
+  margin-bottom: 0.4em;
+}
+
+.chapter-banner .subtitle {
+  color: var(--text-secondary);
+}
+
+
+
+.ai-monologue-tag {
+  font-size: 0.78em;
+  letter-spacing: 0.12em;
+  color: var(--text-secondary);
+  margin-bottom: 1.5em;
+}
+
+
+.highlight-line {
+  font-weight: 700;
+  border-left: 2px solid var(--text-primary);
+  padding-left: 1.25em;
+  margin: 1.75em 0;
+}
+
+
+.data-block {
+  margin: 1.75em 0;
+  padding: 1em 0 0.25em;
+  border-block: 1px solid var(--border-hairline);
+}
+
+.data-block .data-title {
+  font-size: 0.88em;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.data-block table {
+  margin-top: 0.5em;
+}
+
+
+.compare-block {
+  margin: 1.75em 0;
+  padding-left: 1.25em;
+  border-left: 2px solid var(--border-hairline);
+}
+
+.compare-block .bad {
+  color: var(--text-secondary);
+}
+
+.compare-block .label {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  margin-right: 0.5em;
+}
+
+
+.human-notes {
+  margin: 3.5em 0 2em;
+  padding-top: 2em;
+  border-top: 1px solid var(--border-hairline);
+}
+
+.human-notes .note-header {
+  font-size: 1.08em;
+  font-weight: 700;
+  margin-bottom: 1em;
+}
+
+.human-notes .icon {
+  display: none;
+}
+
+.human-notes .note-item {
+  display: list-item;
+  list-style: disc outside;
+  margin: 0 0 0.6em 1.4em;
+}
+
+
+.chapter-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1em;
+  margin-top: 3.5em;
+  padding-top: 1.25em;
+  border-top: 1px solid var(--border-hairline);
+}
+
+.chapter-nav a {
+  flex: 1;
+  padding: 0.6em 0;
+  text-align: center;
+  text-decoration: none;
+  color: var(--text-secondary);
+}
+
+.chapter-nav .prev { text-align: left; }
+.chapter-nav .next { text-align: right; }
+
+.chapter-nav a:hover {
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+  text-decoration-thickness: 1px;
+}
+
+
+.site-footer {
+  margin-top: 4em;
+  padding-top: 1.25em;
+  border-top: 1px solid var(--border-hairline);
+}
+
+.site-footer > div {
+  font-size: 0.85em;
+  color: var(--text-secondary);
+}
+
+.site-footer .author {
+  font-weight: 700;
+}
+
+
+.author-line {
+  color: var(--text-secondary);
+  margin-bottom: 2.4em;
+}
+
+.toc-card,
+.toc-item {
+  display: block;
+  padding: 0.9em 0;
+  border-bottom: 1px solid var(--border-hairline);
+  text-decoration: none;
+}
+
+.toc-card:first-of-type,
+.toc-item:first-of-type {
+  border-top: 1px solid var(--border-hairline);
+}
+
+.toc-card .toc-label,
+.toc-item .label {
+  display: block;
+  font-size: 0.78em;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}
+
+.toc-card .toc-title,
+.toc-item .title {
+  display: block;
+  font-weight: 700;
+}
+
+.toc-card:hover .toc-title,
+.toc-item:hover .title {
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+  text-decoration-thickness: 1px;
+}
+
+
+
+
+.subsection-number {
+  margin: 2.4em 0 0.8em;
+}
+
+.subsection-number .num {
+  font-size: 0.78em;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--text-secondary);
+}
+
+
+.voice-tag {
+  font-size: 0.78em;
+  letter-spacing: 0.12em;
+  color: var(--text-secondary);
+  margin-bottom: 1.5em;
+}
+
+
+.dialogue {
+  margin: 1.5em 0;
+  padding-left: 1.25em;
+  border-left: 2px solid var(--border-hairline);
+}
+
+.dialogue p:last-child {
+  margin-bottom: 0;
+}
+
+.dialogue-author {
+  border-left-color: var(--text-primary);
+}
+
+.dialogue-author p {
+  font-weight: 700;
+}
+
+.dialogue-agent p {
+  color: var(--text-secondary);
+}
+
+.dialogue-agent p strong {
+  color: var(--text-primary);
+}
+
+
+.cinder-bubble {
+  margin: 1.75em 0;
+  padding-left: 1.25em;
+  border-left: 2px solid var(--text-secondary);
+}
+
+.cinder-bubble .cinder-head {
+  font-size: 0.78em;
+  color: var(--text-secondary);
+}
+
+.cinder-bubble .goose {
+  font-style: normal;
+}
+
+.cinder-bubble .cinder-body {
+  font-weight: 700;
+}
+
+.cinder-bubble .cinder-translation {
+  color: var(--text-secondary);
+  margin-top: 0.4em;
+}
+
+.cinder-bubble.quoted {
+  margin: 1.25em 0;
+}
+
+
+.log-quote {
+  margin: 1.75em 0;
+  padding-left: 1.25em;
+  border-left: 2px solid var(--border-hairline);
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.log-quote .goose {
+  font-style: normal;
+  margin-right: 0.4em;
+}
+
+
+.signature {
+  margin-top: 3em;
+  text-align: right;
+  color: var(--text-secondary);
+}
+
+.signature p {
+  margin-bottom: 0.3em;
+  text-align: right;
+}
+
+
+.chapter-banner .chapter-epigraph {
+  margin-top: 1.5em;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.chapter-banner .chapter-epigraph .epigraph-attr {
+  display: block;
+  margin-top: 0.4em;
+  font-size: 0.78em;
+  font-style: normal;
+  letter-spacing: 0.08em;
+}
+
+
+
+
+hr.section-break {
+  width: 42%;
+  margin: 2.4em auto;
+}
+
+
+.book-list-item {
+  position: relative;
+  padding-left: 1.15em;
+  margin-bottom: 0.65em;
+}
+
+.book-list-item .bullet {
+  position: absolute;
+  left: 0;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+
+.list-cont {
+  margin-top: -0.35em;
+  margin-left: 1.15em;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+
+
+
+.table-wrap,
+.diag-table-wrap {
+  overflow-x: auto;
+  margin: 1.6em 0;
+}
+
+.table-wrap table,
+.diag-table-wrap table {
+  margin: 0;
+}
+
+
+.table-wrap .data-table {
+  min-width: 760px;
+}
+
+.diag-table td {
+  min-width: 120px;
+}
+
+.contrast-table td:first-child {
+  font-weight: 700;
+}
+
+
+.skeleton-box,
+.red-line-box {
+  background-color: var(--code-bg);
+  padding: 1.1em 1.2em;
+  margin: 1.6em 0;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  line-height: 1.9;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.skeleton-box {
+  font-size: 0.88em;
+}
+
+.red-line-box {
+  border-left: 4px solid var(--text-primary);
+  border-radius: 0 4px 4px 0;
+  font-size: 0.86em;
+}
+
+.skeleton-box pre,
+.red-line-box pre {
+  margin: 0;
+  padding: 0;
+  background: none;
+  border-radius: 0;
+  font: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+
+.part-closing {
+  margin: 2.5em 0 1em;
+  padding: 0.2em 0 0.2em 1.1em;
+  border-left: 2px solid var(--text-secondary);
+  font-size: 0.95em;
+  color: var(--text-secondary);
+}
+
+.part-closing p {
+  margin-bottom: 0.9em;
+  color: var(--text-secondary);
+}
+
+.part-closing p:last-child {
+  margin-bottom: 0;
+}
+
+.part-closing strong {
+  color: var(--text-primary);
+}
+
+
+.sub-section,
+.sub-heading {
+  margin: 2em 0 0.9em;
+  padding-left: 0.8em;
+  border-left: 2px solid var(--text-primary);
+  font-size: 1em;
+  line-height: 1.5;
+}
+
+
+.part-heading {
+  margin: 2.8em 0 1em;
+  padding-bottom: 0.6em;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.part-heading .part-label {
+  font-size: 0.78em;
+  letter-spacing: 0.12em;
+  color: var(--text-secondary);
+}
+
+.part-heading .part-title {
+  margin-top: 0.3em;
+  font-size: 1.15em;
+  font-weight: 700;
+}
+
+.toc-item .toc-subtitle,
+.toc-card .toc-subtitle {
+  display: block;
+  margin-top: 0.4em;
+  font-size: 0.82em;
+  color: var(--text-secondary);
+}
+
+.tagline,
+.author-credit {
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.author-credit {
+  margin-bottom: 2.4em;
+  font-size: 0.88em;
+  letter-spacing: 0.12em;
+}
+
+
+
+.book-plate {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-bottom: 2em;
+  border-radius: 4px;
+}
+
+.toc-card.recipe-card {
+  --recipe-paper: light-dark(#f7eedb, #2a2520);
+  --recipe-edge: light-dark(#e2d3b4, #463c32);
+  --recipe-red: light-dark(#b8432c, #e07a5f);
+  padding: 0.8em 1.1em 1em;
+  border: 1px solid var(--recipe-edge);
+  border-radius: 3px;
+  background: var(--recipe-paper);
+}
+
+.toc-card.recipe-card .toc-label {
+  padding-bottom: 0.45em;
+  margin-bottom: 0.6em;
+  border-bottom: 2px solid var(--recipe-red);
+  color: var(--recipe-red);
+}
+
+details { border-block:1px solid var(--border-hairline); padding-block:1em; }
+summary {cursor:pointer;font-weight:700;} details[open] summary {margin-bottom:1em;}
+details h2 {font-size:1.1em;} details li {margin-bottom:.65em;} a {overflow-wrap:anywhere;}
+.sources { font-size: .85em; line-height: 1.6; margin-top: -.65em; }
+</style></head><body><header class="chapter-banner"><h1>I used Codex to review 100 open-source PRs. I left no comment on 76 of them.</h1></header><main><p>It took me a while to ask what it costs someone else to answer a review comment. Codex can produce a plausible question about a few lines of code, while the maintainer getting the notification might have to write a test just to find out whether I was wrong.</p>
+<p>I have no software engineering background. I built <code>arc9</code>, a review skill that guides Codex through the relevant code at a specific commit. We (me and AI) sometimes tested a finding in isolation. I decided which leads to pursue and what to post. I counted each primary PR once, even when we read a related PR to check the same finding.</p>
+<p>In Kafka #24292, restoring a cache could evict an index and schedule it for deletion. If initialization then failed, shutdown canceled the deletion after the index was already gone from the map that cleanup walked. I asked who closed it and noted I hadn't run the sequence. The author reproduced it, fixed it, and added a test that fails if the evicted index stays open.</p>
+<p class="sources"><a href="https://github.com/apache/kafka/pull/24292#issuecomment-7008198647">Kafka #24292 comment</a> · <a href="https://github.com/apache/kafka/pull/24292#issuecomment-7015714823">Kafka #24292 author reply</a></p>
+<p>In Kafka #24324, the test already checked that the session had expired one nanosecond after its heartbeat deadline. I suggested adding an assertion that the session was still valid exactly at the deadline. The PR merged with the test as written. I'd skip that comment today. The author had already explained what should happen at the deadline.</p>
+<p class="sources"><a href="https://github.com/apache/kafka/pull/24324#issuecomment-7056225855">Kafka #24324 comment</a> · <a href="https://github.com/apache/kafka/blob/278ba3205a3b46bbac311a81f948ce30fac5dba4/metadata/src/test/java/org/apache/kafka/controller/BrokerHeartbeatTrackerTest.java#L104-L119">Kafka #24324 merged test</a></p>
+<p>In DuckDB #29115, I described the two-row Parquet file we tested. Column <code>x</code> held only <code>1.0</code> and <code>2.0</code>, with exact min/max bounds and no <code>nan_count</code> statistic. On the PR build, <code>max(x)</code> returned <code>NaN</code> with <code>parquet_can_have_nan</code> enabled and <code>2.0</code> with it disabled. The author reproduced it on <code>main</code> and opened a fix with a regression test. I posted that AI-assisted comment before reading DuckDB's policy, which requires contributors to write their own comments. I now check each project's policy before choosing a PR and skip DuckDB with this workflow.</p>
+<p class="sources"><a href="https://github.com/duckdb/duckdb/pull/29115#issuecomment-7046876025">DuckDB #29115 comment</a> · <a href="https://github.com/duckdb/duckdb/pull/29115#issuecomment-7062894962">DuckDB #29115 author reply</a> · <a href="https://github.com/duckdb/duckdb/pull/29179">DuckDB #29179 fix PR</a> · <a href="https://github.com/duckdb/duckdb/blob/main/AI_POLICY.md">DuckDB AI policy</a></p>
+<p>In Flink #30022, the author confirmed that after restoring a 2.3.0 savepoint, Flink could reuse an active event ID if the clock moved backward. Skipping occupied IDs cost about 30% in their RocksDB test, so they chose to document the behavior.</p>
+<p class="sources"><a href="https://github.com/apache/flink/pull/30022#issuecomment-7035073896">Flink #30022 comment</a> · <a href="https://github.com/apache/flink/pull/30022#issuecomment-7037952294">Flink #30022 author reply</a></p>
+<p>I wanted to see whether that cost could move to recovery. We tested two prototypes against RocksDB. Both preserved the old IDs. One scanned saved state at restore time to rebuild the counters, and the other checked for occupied IDs as it assigned them. Including recovery, checking on allocation finished sooner at about 2.1 million events, while the scan finished sooner at about 4.19 million. Those were timings for our two prototypes. We hadn't measured the author's implementation. Picking one would require deciding how long a Flink job could afford to spend recovering and how much work it would do before the next restart. The maintainer had already made that call, so I kept the benchmark in my notes.</p>
+<p>As of November 23, I had commented on 24 of the 100 PRs. On 13 of those PRs, a review point was confirmed or addressed. I was still waiting for a reply on 10, and I closed one review without confirmation. The three confirmed bugs described here, in Kafka, DuckDB, and Flink, all predated the PRs we reviewed. I didn't measure maintainer time. I did track whether the first comment gave the author enough to reproduce the problem, fix it, or decide to live with it.</p>
+<p>Before I post now, I weigh what the bug could cost against what it would take the author to check my evidence. If they'd have to start the investigation from scratch, I either do more of that work myself or leave the comment unwritten.</p>
+<p><em>Disclosure: English is not my first language. I outlined the findings and used AI tools to help draft and edit the English prose.</em></p>
+<details id="review-record">
+<summary>Appendix · The 24 PRs where I commented</summary>
+<p>This appendix records the status of the 24 PRs as of November 23, 2026, when I finished the review project. Each PR link opens my first comment.</p>
+<h2>Confirmed or addressed (13)</h2>
+<ul>
+<li><a href="https://github.com/apache/arrow/pull/55660#issuecomment-7008394155">Arrow #55660</a> — The author narrowed the documented guarantee for <code>Close()</code> after checking both error paths. <a href="https://github.com/apache/arrow/pull/55660#issuecomment-7015545791">Author reply</a></li>
+<li><a href="https://github.com/ClickHouse/ClickHouse/pull/133120#issuecomment-7043950742">ClickHouse #133120</a> — The author reproduced the filtering error after a column was dropped and recreated, then added a fix and regression test. <a href="https://github.com/ClickHouse/ClickHouse/commit/74bf5ff32b01ebebbfaaeea3381e17797e65312c">Fix and test</a></li>
+<li><a href="https://github.com/ClickHouse/ClickHouse/pull/133245#issuecomment-7054380919">ClickHouse #133245</a> — The author confirmed the text index could miss matching rows and added a fix and test. <a href="https://github.com/ClickHouse/ClickHouse/commit/570502bef187f2edc0732ae7f5318633837d5753">Fix and test</a></li>
+<li><a href="https://github.com/apache/datafusion/pull/27597#issuecomment-7036916326">DataFusion #27597</a> — The author reproduced the incorrect sort order and opened a fix with tests. <a href="https://github.com/apache/datafusion/pull/27620">Fix PR</a></li>
+<li><a href="https://github.com/delta-io/delta/pull/8256#issuecomment-7057960766">Delta Lake #8256</a> — A follow-up commit checks the latest log version before applying the retention exemption. <a href="https://github.com/delta-io/delta/commit/6200700146bd9a889a1696f24c4cd9a8c7eeb1b5">Fix</a></li>
+<li><a href="https://github.com/langgenius/dify/pull/46310#issuecomment-6981994924">Dify #46310</a> — The author confirmed both worker races and marked them as merge blockers. <a href="https://github.com/langgenius/dify/pull/46310#issuecomment-6992254631">Author reply</a></li>
+<li><a href="https://github.com/duckdb/duckdb/pull/29115#issuecomment-7046876025">DuckDB #29115</a> — The author reproduced the incorrect maximum on main and opened a fix with a regression test. <a href="https://github.com/duckdb/duckdb/pull/29179">Fix PR</a></li>
+<li><a href="https://github.com/Effect-TS/effect/pull/10802#issuecomment-7058087237">Effect #10802</a> — The author confirmed the optional-handler case. The type fix keeps the parent error when the handler is omitted. <a href="https://github.com/Effect-TS/effect/commit/bb42e60d9beff09e4f2790effc592b8e1f14316a">Fix</a></li>
+<li><a href="https://github.com/apache/flink/pull/30022#issuecomment-7035073896">Flink #30022</a> — The author reproduced event ID reuse and chose to document the limitation. <a href="https://github.com/apache/flink/pull/30022#issuecomment-7037952294">Author reply</a></li>
+<li><a href="https://github.com/apache/fluss/pull/5289#issuecomment-7041135080">Fluss #5289</a> — The author changed when downloaded files could be removed and followed up on interrupted waits. <a href="https://github.com/apache/fluss/pull/5289#issuecomment-7046135376">Follow-up reply</a></li>
+<li><a href="https://github.com/apache/kafka/pull/24292#issuecomment-7008198647">Kafka #24292</a> — The author fixed cleanup of evicted indexes after initialization failed and added a regression test. <a href="https://github.com/apache/kafka/pull/24292#issuecomment-7015714823">Author reply</a></li>
+<li><a href="https://github.com/apache/parquet-java/pull/3971#issuecomment-7008959429">Parquet Java #3971</a> — The author reproduced the projection error, fixed list handling, and added tests. <a href="https://github.com/apache/parquet-java/pull/3971#issuecomment-7010733769">Author reply</a></li>
+<li><a href="https://github.com/apache/pulsar/pull/27666#issuecomment-7015428325">Pulsar #27666</a> — The author changed when the delayed-delivery tracker takes over and added a regression test. <a href="https://github.com/apache/pulsar/pull/27666#issuecomment-7028249450">Author reply</a></li>
+</ul>
+<h2>Awaiting a reply (10)</h2>
+<ul>
+<li><a href="https://github.com/apache/arrow/pull/55694#issuecomment-7055374444">Arrow #55694</a> — Can the workaround be limited to builds using a release configuration of Abseil?</li>
+<li><a href="https://github.com/ClickHouse/ClickHouse/pull/133268#issuecomment-7054900194">ClickHouse #133268</a> — Can a cached row count survive a change from permissive to strict input settings?</li>
+<li><a href="https://github.com/ClickHouse/ClickHouse/pull/133280#issuecomment-7055929101">ClickHouse #133280</a> — Should shifting a Variant array preserve the distinction between a null row and an empty array?</li>
+<li><a href="https://github.com/etcd-io/etcd/pull/22850#issuecomment-7007344390">etcd #22850</a> — Can a stale revoke proposal delete a lease renewed after a leadership change?</li>
+<li><a href="https://github.com/PrefectHQ/prefect/pull/23874#discussion_r4616892632">Prefect #23874</a> — Can a late completion from the old engine release its successor’s lease?</li>
+<li><a href="https://github.com/sgl-project/sglang/pull/51683#issuecomment-7056527407">SGLang #51683</a> — Should pending renewals be bounded when released requests can still run ahead of active ones?</li>
+<li><a href="https://github.com/apache/spark/pull/60724#issuecomment-7058670635">Spark #60724</a> — Can the error marker cover the second parameter in the original SQL after the first expands across lines?</li>
+<li><a href="https://github.com/influxdata/telegraf/pull/20201#issuecomment-7057419634">Telegraf #20201</a> — Can the test fetch a row and check that it retains one field while excluding the other?</li>
+<li><a href="https://github.com/temporalio/temporal/pull/13188#issuecomment-7056794879">Temporal #13188</a> — Should alias resolution return the filtered fields after it detects a name collision?</li>
+<li><a href="https://github.com/vllm-project/vllm/pull/68539#issuecomment-6997488779">vLLM #68539</a> — How is GPU cache reclaimed if a request abort never reaches the engine?</li>
+</ul>
+<h2>Closed without confirmation (1)</h2>
+<ul>
+<li><a href="https://github.com/apache/kafka/pull/24324#issuecomment-7056225855">Kafka #24324</a> — The PR merged with the original heartbeat test. The suggested assertion received no reply. <a href="https://github.com/apache/kafka/blob/278ba3205a3b46bbac311a81f948ce30fac5dba4/metadata/src/test/java/org/apache/kafka/controller/BrokerHeartbeatTrackerTest.java#L104-L119">Merged test</a></li>
+</ul>
+</details></main></body></html>
