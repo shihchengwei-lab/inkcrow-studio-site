@@ -789,7 +789,7 @@ details h2 {font-size:1.1em;} details li {margin-bottom:.65em;} a {overflow-wrap
 <p>In Flink #30022, the author confirmed that after restoring a 2.3.0 savepoint, Flink could reuse an active event ID if the clock moved backward. Skipping occupied IDs cost about 30% in their RocksDB test, so they chose to document the behavior.</p>
 <p class="sources"><a href="https://github.com/apache/flink/pull/30022#issuecomment-7035073896">Flink #30022 comment</a> · <a href="https://github.com/apache/flink/pull/30022#issuecomment-7037952294">Flink #30022 author reply</a></p>
 <p>I wanted to see whether that cost could move to recovery. We tested two prototypes against RocksDB. Both preserved the old IDs. One scanned saved state at restore time to rebuild the counters, and the other checked for occupied IDs as it assigned them. Including recovery, checking on allocation finished sooner at about 2.1 million events, while the scan finished sooner at about 4.19 million. Those were timings for our two prototypes. We hadn't measured the author's implementation. Picking one would require deciding how long a Flink job could afford to spend recovering and how much work it would do before the next restart. The maintainer had already made that call, so I kept the benchmark in my notes.</p>
-<p>As of November 23, I had commented on 24 of the 100 PRs. On 13 of those PRs, a review point was confirmed or addressed. I was still waiting for a reply on 10. The remaining PR, Kafka #24324, had merged with the heartbeat test unchanged. My suggestion received no reply. The three confirmed bugs described here, in Kafka, DuckDB, and Flink, all predated the PRs we reviewed. I didn't measure maintainer time. I did track whether the first comment gave the author enough to reproduce the problem, fix it, or decide to live with it.</p>
+<p>As of November 23, I had commented on 24 of the 100 PRs. On 13 of those PRs, a review point was confirmed or addressed. For 10 PRs, the outcome was still unclear when I finished the review project. The remaining PR, Kafka #24324, had merged with the heartbeat test unchanged. My suggestion received no reply. The three confirmed bugs described here, in Kafka, DuckDB, and Flink, all predated the PRs we reviewed. I didn't measure maintainer time. I did track whether the first comment gave the author enough to reproduce the problem, fix it, or decide to live with it.</p>
 <p>The rule I ask Codex to use now is to weigh what the bug could cost against the work the author would have to do to check it. If the author would have to start from scratch, we either gather more evidence or leave the comment unwritten.</p>
 <p><em>Disclosure: English is not my first language. I outlined the findings and used AI tools to help draft and edit the English prose.</em></p>
 <details id="review-record">
@@ -811,7 +811,7 @@ details h2 {font-size:1.1em;} details li {margin-bottom:.65em;} a {overflow-wrap
 <li><a href="https://github.com/apache/parquet-java/pull/3971#issuecomment-7008959429">Parquet Java #3971</a> — The author reproduced the projection error, fixed list handling, and added tests. <a href="https://github.com/apache/parquet-java/pull/3971#issuecomment-7010733769">Author reply</a></li>
 <li><a href="https://github.com/apache/pulsar/pull/27666#issuecomment-7015428325">Pulsar #27666</a> — The author changed when the delayed-delivery tracker takes over and added a regression test. <a href="https://github.com/apache/pulsar/pull/27666#issuecomment-7028249450">Author reply</a></li>
 </ul>
-<h2>Awaiting a reply (10)</h2>
+<h2>Outcome unknown at the cutoff (10)</h2>
 <ul>
 <li><a href="https://github.com/apache/arrow/pull/55694#issuecomment-7055374444">Arrow #55694</a> — Can the workaround be limited to builds using a release configuration of Abseil?</li>
 <li><a href="https://github.com/ClickHouse/ClickHouse/pull/133268#issuecomment-7054900194">ClickHouse #133268</a> — Can a cached row count survive a change from permissive to strict input settings?</li>
@@ -824,7 +824,7 @@ details h2 {font-size:1.1em;} details li {margin-bottom:.65em;} a {overflow-wrap
 <li><a href="https://github.com/temporalio/temporal/pull/13188#issuecomment-7056794879">Temporal #13188</a> — Should alias resolution return the filtered fields after it detects a name collision?</li>
 <li><a href="https://github.com/vllm-project/vllm/pull/68539#issuecomment-6997488779">vLLM #68539</a> — How is GPU cache reclaimed if a request abort never reaches the engine?</li>
 </ul>
-<h2>Merged without a reply to the suggestion (1)</h2>
+<h2>Merged with the test unchanged (1)</h2>
 <ul>
 <li><a href="https://github.com/apache/kafka/pull/24324#issuecomment-7056225855">Kafka #24324</a> — The PR merged with the original heartbeat test. The suggested assertion received no reply. <a href="https://github.com/apache/kafka/blob/278ba3205a3b46bbac311a81f948ce30fac5dba4/metadata/src/test/java/org/apache/kafka/controller/BrokerHeartbeatTrackerTest.java#L104-L119">Merged test</a></li>
 </ul>
